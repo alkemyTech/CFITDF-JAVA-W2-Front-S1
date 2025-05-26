@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Movimientos - AlkyWallet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hover-scale {
+            transition: all 0.3s ease;
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+
+        .nav-item {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-item:hover:after {
+            width: 100%;
+        }
+
+        .movement-item {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .movement-item:hover {
+            border-left-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+            transform: translateX(5px);
+        }
+
+        .filter-btn {
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 2px solid transparent;
+            transition: all 0.3s ease;
+        }
+
+        .search-input:focus {
+            border-color: #667eea;
+            background: rgba(255, 255, 255, 1);
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .stats-card {
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+            border: 1px solid rgba(102, 126, 234, 0.2);
+        }
+
+        .movement-type-income {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+        }
+
+        .movement-type-expense {
+            background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+        }
+
+        .movement-type-transfer {
+            background: linear-gradient(135deg, #3B82F6 0%, #2563EB 100%);
+        }
+
+        .loading-skeleton {
+            background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+            background-size: 200% 100%;
+            animation: loading 1.5s infinite;
+        }
+
+        @keyframes loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.6s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="gradient-bg text-gray-800 min-h-screen">
+
+<!-- Header -->
+<header class="glass-effect shadow-lg border-b border-white/20 sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <!-- Logo y título -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl floating-animation">
+                    <span class="material-icons text-white text-2xl">account_balance_wallet</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        AlkyWallet
+                    </h1>
+                    <p class="text-xs text-gray-600">Historial de Movimientos</p>
+                </div>
+            </div>
+
+            <!-- Saludo y navegación -->
+            <div class="flex-1 lg:flex lg:items-center lg:justify-between">
+                <!-- Saludo personalizado -->
+                <div class="flex items-center space-x-3 mb-4 lg:mb-0">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span class="material-icons text-white text-sm">person</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">
+                            ¡Hola, <span class="font-bold text-gray-900">Melina</span>! 👋
+                        </p>
+                        <p class="text-xs text-gray-500" id="currentTime"></p>
+                    </div>
+                </div>
+
+                <!-- Navegación -->
+                <nav class="flex flex-wrap gap-1 lg:gap-4">
+                    <a href="dashboard.html"
+                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <span class="material-icons text-sm mr-1">dashboard</span>
+                        Inicio
+                    </a>
+                    <a href="carga.html"
+                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <span class="material-icons text-sm mr-1">add_circle</span>
+                        Cargar
+                    </a>
+                    <a href="transferencia.html"
+                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <span class="material-icons text-sm mr-1">send</span>
+                        Transferir
+                    </a>
+                    <a href="movimientos.html"
+                       class="nav-item px-3 py-2 text-sm font-medium text-blue-600 rounded-lg bg-blue-50">
+                        <span class="material-icons text-sm mr-1">history</span>
+                        Movimientos
+                    </a>
+                    <button onclick="logout()"
+                            class="nav-item px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg ml-2">
+                        <span class="material-icons text-sm mr-1">logout</span>
+                        Salir
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Contenido principal -->
+<main class="container mx-auto p-4 lg:p-6">
+    <!-- Título y estadísticas rápidas -->
+    <section class="mb-8 slide-in">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-6">
+            <div>
+                <h2 class="text-3xl font-bold text-gray-900 mb-2 flex items-center">
+                    <span class="material-icons mr-3 text-blue-600 text-3xl">history</span>
+                    Historial de Movimientos
+                </h2>
+                <p class="text-gray-600">Gestiona y revisa todas tus transacciones</p>
+            </div>
+        </div>
+
+        <!-- Estadísticas rápidas -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+            <div class="stats-card rounded-2xl p-4 text-center">
+                <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                    <span class="material-icons text-green-600">trending_up</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-1">Total Ingresos</p>
+                <p class="text-xl font-bold text-green-600" id="totalIngresos">$75.000</p>
+            </div>
+
+            <div class="stats-card rounded-2xl p-4 text-center">
+                <div class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                    <span class="material-icons text-red-600">trending_down</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-1">Total Gastos</p>
+                <p class="text-xl font-bold text-red-600" id="totalGastos">$36.850</p>
+            </div>
+
+            <div class="stats-card rounded-2xl p-4 text-center">
+                <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                    <span class="material-icons text-blue-600">swap_horiz</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-1">Transferencias</p>
+                <p class="text-xl font-bold text-blue-600" id="totalTransferencias">2</p>
+            </div>
+
+            <div class="stats-card rounded-2xl p-4 text-center">
+                <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center mx-auto mb-2">
+                    <span class="material-icons text-purple-600">receipt_long</span>
+                </div>
+                <p class="text-sm text-gray-600 mb-1">Total Movimientos</p>
+                <p class="text-xl font-bold text-purple-600" id="totalMovimientos">6</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Filtros y búsqueda -->
+    <section class="mb-6 slide-in">
+        <div class="glass-effect rounded-2xl p-6">
+            <div class="flex flex-col lg:flex-row gap-4">
+                <!-- Barra de búsqueda -->
+                <div class="flex-1 relative">
+                    <span class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
+                    <input type="text"
+                           id="searchInput"
+                           placeholder="Buscar por concepto, monto o fecha..."
+                           class="search-input w-full pl-10 pr-4 py-3 rounded-xl outline-none text-gray-700">
+                </div>
+
+                <!-- Filtros por tipo -->
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="filterMovements('all')"
+                            class="filter-btn active px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium"
+                            id="filter-all">
+                        <span class="material-icons text-sm mr-1">view_list</span>
+                        Todos
+                    </button>
+                    <button onclick="filterMovements('income')"
+                            class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium"
+                            id="filter-income">
+                        <span class="material-icons text-sm mr-1">add</span>
+                        Ingresos
+                    </button>
+                    <button onclick="filterMovements('expense')"
+                            class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium"
+                            id="filter-expense">
+                        <span class="material-icons text-sm mr-1">remove</span>
+                        Gastos
+                    </button>
+                    <button onclick="filterMovements('transfer')"
+                            class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium"
+                            id="filter-transfer">
+                        <span class="material-icons text-sm mr-1">send</span>
+                        Transferencias
+                    </button>
+                </div>
+
+                <!-- Selector de fecha -->
+                <div class="relative">
+                    <select id="dateFilter"
+                            class="search-input px-4 py-3 rounded-xl outline-none text-gray-700 appearance-none cursor-pointer">
+                        <option value="all">Todas las fechas</option>
+                        <option value="today">Hoy</option>
+                        <option value="week">Esta semana</option>
+                        <option value="month">Este mes</option>
+                        <option value="custom">Personalizado</option>
+                    </select>
+                    <span class="material-icons absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lista de movimientos -->
+    <section class="slide-in">
+        <div class="glass-effect rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                    <span class="material-icons mr-2 text-blue-600">receipt_long</span>
+                    Lista de Movimientos
+                </h3>
+                <div class="flex items-center space-x-2 text-sm text-gray-600">
+                    <span class="material-icons text-sm">sync</span>
+                    <span id="lastUpdateTime">Actualizado hace 2 min</span>
+                </div>
+            </div>
+
+            <!-- Loading skeleton -->
+            <div id="loadingSkeleton" class="hidden space-y-3">
+                <div class="loading-skeleton rounded-xl h-20"></div>
+                <div class="loading-skeleton rounded-xl h-20"></div>
+                <div class="loading-skeleton rounded-xl h-20"></div>
+            </div>
+
+            <!-- Lista de movimientos -->
+            <div id="movimientosList" class="space-y-3">
+                <!-- Movimientos de ejemplo -->
+                <div class="movement-item flex items-center justify-between p-4 rounded-xl bg-white/50 hover:bg-white/80 fade-in">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 movement-type-income rounded-xl flex items-center justify-center">
+                            <span class="material-icons text-white">add</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Carga de saldo</p>
+                            <p class="text-sm text-gray-500">Depósito por tarjeta terminada en ****4521</p>
+                            <div class="flex items-center mt-1 space-x-2">
+                                <span class="material-icons text-xs text-gray-400">schedule</span>
+                                <span class="text-xs text-gray-500">Hoy, 14:30</span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                                    <span class="material-icons text-xs mr-1">check_circle</span>
+                                    Completado
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-green-600 text-lg">+$50.000</p>
+                        <p class="text-xs text-gray-500">#TXN001234</p>
+                    </div>
+                </div>
+
+                <div class="movement-item flex items-center justify-between p-4 rounded-xl bg-white/50 hover:bg-white/80 fade-in">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 movement-type-transfer rounded-xl flex items-center justify-center">
+                            <span class="material-icons text-white">send</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Transferencia enviada</p>
+                            <p class="text-sm text-gray-500">Para Juan Pérez - juan.perez@email.com</p>
+                            <div class="flex items-center mt-1 space-x-2">
+                                <span class="material-icons text-xs text-gray-400">schedule</span>
+                                <span class="text-xs text-gray-500">Ayer, 18:45</span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                                    <span class="material-icons text-xs mr-1">check_circle</span>
+                                    Completado
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-blue-600 text-lg">-$12.500</p>
+                        <p class="text-xs text-gray-500">#TXN001233</p>
+                    </div>
+                </div>
+
+                <div class="movement-item flex items-center justify-between p-4 rounded-xl bg-white/50 hover:bg-white/80 fade-in">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 movement-type-expense rounded-xl flex items-center justify-center">
+                            <span class="material-icons text-white">shopping_cart</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Pago en comercio</p>
+                            <p class="text-sm text-gray-500">MercadoLibre - Compra online</p>
+                            <div class="flex items-center mt-1 space-x-2">
+                                <span class="material-icons text-xs text-gray-400">schedule</span>
+                                <span class="text-xs text-gray-500">2 días, 10:15</span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                                    <span class="material-icons text-xs mr-1">check_circle</span>
+                                    Completado
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-red-600 text-lg">-$8.750</p>
+                        <p class="text-xs text-gray-500">#TXN001232</p>
+                    </div>
+                </div>
+
+                <div class="movement-item flex items-center justify-between p-4 rounded-xl bg-white/50 hover:bg-white/80 fade-in">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 movement-type-transfer rounded-xl flex items-center justify-center">
+                            <span class="material-icons text-white">call_received</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Transferencia recibida</p>
+                            <p class="text-sm text-gray-500">De María González - Pago de deuda</p>
+                            <div class="flex items-center mt-1 space-x-2">
+                                <span class="material-icons text-xs text-gray-400">schedule</span>
+                                <span class="text-xs text-gray-500">3 días, 16:20</span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-green-100 text-green-700">
+                                    <span class="material-icons text-xs mr-1">check_circle</span>
+                                    Completado
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-green-600 text-lg">+$25.000</p>
+                        <p class="text-xs text-gray-500">#TXN001231</p>
+                    </div>
+                </div>
+
+                <div class="movement-item flex items-center justify-between p-4 rounded-xl bg-white/50 hover:bg-white/80 fade-in">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-12 h-12 movement-type-expense rounded-xl flex items-center justify-center">
+                            <span class="material-icons text-white">local_gas_station</span>
+                        </div>
+                        <div>
+                            <p class="font-semibold text-gray-800">Pago de servicios</p>
+                            <p class="text-sm text-gray-500">YPF - Carga de combustible</p>
+                            <div class="flex items-center mt-1 space-x-2">
+                                <span class="material-icons text-xs text-gray-400">schedule</span>
+                                <span class="text-xs text-gray-500">5 días, 08:30</span>
+                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs bg-orange-100 text-orange-700">
+                                    <span class="material-icons text-xs mr-1">hourglass_empty</span>
+                                    Pendiente
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="font-bold text-red-600 text-lg">-$15.600</p>
+                        <p class="text-xs text-gray-500">#TXN001230</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Paginación -->
+            <div class="flex items-center justify-between mt-8 pt-6 border-t border-gray-200">
+                <div class="text-sm text-gray-600">
+                    Mostrando <span class="font-semibold">1-6</span> de <span class="font-semibold">24</span> movimientos
+                </div>
+                <div class="flex items-center space-x-2">
+                    <button class="px-3 py-2 rounded-lg border border-gray-300 text-gray-500 hover:bg-gray-50 transition-colors disabled:opacity-50" disabled>
+                        <span class="material-icons text-sm">chevron_left</span>
+                    </button>
+                    <button class="px-3 py-2 rounded-lg bg-blue-600 text-white font-medium">1</button>
+                    <button class="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">2</button>
+                    <button class="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">3</button>
+                    <button class="px-3 py-2 rounded-lg border border-gray-300 text-gray-700 hover:bg-gray-50 transition-colors">
+                        <span class="material-icons text-sm">chevron_right</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Estado vacío -->
+            <div id="emptyState" class="hidden text-center py-16">
+                <div class="w-24 h-24 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                    <span class="material-icons text-gray-400 text-4xl">receipt_long</span>
+                </div>
+                <h4 class="text-xl font-semibold text-gray-600 mb-2">No se encontraron movimientos</h4>
+                <p class="text-gray-500 mb-8 max-w-md mx-auto">
+                    No hay transacciones que coincidan con los filtros aplicados.
+                    Intenta ajustar los criterios de búsqueda.
+                </p>
+                <div class="flex flex-col sm:flex-row gap-3 justify-center">
+                    <button onclick="clearFilters()"
+                            class="inline-flex items-center px-6 py-3 bg-gray-600 text-white rounded-xl hover:bg-gray-700 transition-colors">
+                        <span class="material-icons mr-2">clear</span>
+                        Limpiar filtros
+                    </button>
+                    <a href="carga.html"
+                       class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                        <span class="material-icons mr-2">add</span>
+                        Nueva transacción
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer class="mt-12 bg-white/50 backdrop-blur-sm border-t border-gray-200">
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1 text-green-500">security</span>
+                    <span>Protegido por SSL</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1 text-blue-500">support_agent</span>
+                    <span>Soporte 24/7</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1 text-purple-500">update</span>
+                    <span>Última actualización: <span id="footerUpdateTime">21/05/2025 - 19:30 hs</span></span>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500">© 2024 AlkyWallet. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Script movimientos.js -->
+<script src="./js/movimientos.js"></script>
+
+</body>
+</html>
