@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mis Cuentas - AlkyWallet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+
+        .card-gradient {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .hover-scale {
+            transition: all 0.3s ease;
+        }
+
+        .hover-scale:hover {
+            transform: scale(1.02);
+        }
+
+        .nav-item {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-item:hover:after {
+            width: 100%;
+        }
+
+        .account-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .account-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+            animation: shimmer 3s ease-in-out infinite;
+        }
+
+        @keyframes shimmer {
+            0%, 100% { transform: rotate(0deg); }
+            50% { transform: rotate(180deg); }
+        }
+
+        .form-input {
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .form-input:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn-primary:before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            transition: all 0.5s ease;
+        }
+
+        .btn-primary:hover:before {
+            width: 300px;
+            height: 300px;
+        }
+
+        .account-item {
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+        }
+
+        .account-item:hover {
+            border-left-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+    </style>
+</head>
+<body class="gradient-bg text-gray-800 min-h-screen">
+
+<!-- Header -->
+<header class="glass-effect shadow-lg border-b border-white/20 sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+            <!-- Logo y título -->
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl floating-animation">
+                    <span class="material-icons text-white text-2xl">account_balance_wallet</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        AlkyWallet
+                    </h1>
+                    <p class="text-xs text-gray-600">Gestión de Cuentas</p>
+                </div>
+            </div>
+
+            <!-- Saludo y navegación -->
+            <div class="flex-1 lg:flex lg:items-center lg:justify-between">
+                <!-- Saludo personalizado -->
+                <div class="flex items-center space-x-3 mb-4 lg:mb-0">
+                    <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                        <span class="material-icons text-white text-sm">person</span>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">
+                            ¡Hola, <span class="font-bold text-gray-900">Melina</span>! 👋
+                        </p>
+                        <p class="text-xs text-gray-500" id="currentTime"></p>
+                    </div>
+                </div>
+
+                <!-- Navegación -->
+                <nav class="flex flex-wrap gap-1 lg:gap-4">
+                    <a href="dashboard.html"
+                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <span class="material-icons text-sm mr-1">dashboard</span>
+                        Inicio
+                    </a>
+                    <a href="carga.html"
+                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <span class="material-icons text-sm mr-1">add_circle</span>
+                        Cargar
+                    </a>
+                    <a href="transferencia.html"
+                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <span class="material-icons text-sm mr-1">send</span>
+                        Transferir
+                    </a>
+                    <a href="movimientos.html"
+                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                        <span class="material-icons text-sm mr-1">history</span>
+                        Movimientos
+                    </a>
+                    <a href="cuentas.html"
+                       class="nav-item px-3 py-2 text-sm font-medium text-purple-600 rounded-lg bg-purple-50">
+                        <span class="material-icons text-sm mr-1">account_balance</span>
+                        Cuentas
+                    </a>
+
+                    <button onclick="logout()"
+                            class="nav-item px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg ml-2">
+                        <span class="material-icons text-sm mr-1">logout</span>
+                        Salir
+                    </button>
+                </nav>
+            </div>
+        </div>
+    </div>
+</header>
+
+<!-- Contenido principal -->
+<main class="container mx-auto p-4 lg:p-6">
+    <!-- Título de la página -->
+    <section class="mb-8 slide-in">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mb-2">Gestión de Cuentas</h2>
+            <p class="text-gray-600">Administra tus cuentas bancarias y de inversión</p>
+        </div>
+    </section>
+
+    <!-- Estadísticas de cuentas -->
+    <section class="mb-8 slide-in">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="glass-effect rounded-2xl p-6 hover-scale">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Total en cuentas</p>
+                        <p class="text-2xl font-bold text-blue-600">$<span id="totalBalance">0.00</span></p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <span class="material-icons text-blue-600">account_balance</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-effect rounded-2xl p-6 hover-scale">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Cuentas activas</p>
+                        <p class="text-2xl font-bold text-green-600"><span id="activeAccounts">0</span></p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <span class="material-icons text-green-600">check_circle</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-effect rounded-2xl p-6 hover-scale">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm text-gray-600 mb-1">Cuenta principal</p>
+                        <p class="text-lg font-bold text-purple-600" id="mainAccount">Ahorro</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <span class="material-icons text-purple-600">star</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lista de cuentas -->
+    <section class="mb-8 slide-in">
+        <div class="glass-effect rounded-2xl p-6">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                    <span class="material-icons mr-2 text-blue-600">account_balance</span>
+                    Mis Cuentas
+                </h3>
+                <button onclick="showCreateForm()" 
+                        class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-all duration-300 flex items-center">
+                    <span class="material-icons mr-2">add</span>
+                    Nueva Cuenta
+                </button>
+            </div>
+
+            <div id="lista-cuentas" class="space-y-4">
+                <!-- Las cuentas se cargarán dinámicamente -->
+            </div>
+
+            <!-- Estado vacío -->
+            <div id="empty-accounts" class="hidden text-center py-12">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-icons text-gray-400 text-3xl">account_balance</span>
+                </div>
+                <h4 class="text-lg font-medium text-gray-600 mb-2">No tienes cuentas registradas</h4>
+                <p class="text-gray-500 mb-6">Crea tu primera cuenta para comenzar a gestionar tu dinero</p>
+                <button onclick="showCreateForm()" 
+                        class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                    <span class="material-icons mr-2">add</span>
+                    Crear primera cuenta
+                </button>
+            </div>
+        </div>
+    </section>
+
+    <!-- Formulario de crear/editar cuenta -->
+    <section class="slide-in">
+        <div id="form-section" class="glass-effect rounded-2xl p-6 hidden">
+            <div class="flex items-center justify-between mb-6">
+                <h3 class="text-xl font-bold text-gray-800 flex items-center">
+                    <span class="material-icons mr-2 text-purple-600">edit</span>
+                    <span id="form-title">Crear Nueva Cuenta</span>
+                </h3>
+                <button onclick="hideForm()" 
+                        class="text-gray-500 hover:text-gray-700 transition-colors">
+                    <span class="material-icons">close</span>
+                </button>
+            </div>
+
+            <form id="cuenta-form" class="space-y-6">
+                <input type="hidden" id="cuenta-id" />
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label for="cuenta-saldo" class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="material-icons text-sm mr-1">account_balance_wallet</span>
+                            Saldo inicial
+                        </label>
+                        <input type="number" 
+                               id="cuenta-saldo" 
+                               placeholder="0.00" 
+                               class="form-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none" 
+                               required min="0" step="0.01" />
+                    </div>
+
+                    <div>
+                        <label for="cuenta-tipo" class="block text-sm font-medium text-gray-700 mb-2">
+                            <span class="material-icons text-sm mr-1">category</span>
+                            Tipo de cuenta
+                        </label>
+                        <select id="cuenta-tipo" 
+                                class="form-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none" 
+                                required>
+                            <option value="">Selecciona un tipo de cuenta</option>
+                            <option value="ahorro">💰 Cuenta de Ahorro</option>
+                            <option value="corriente">🏦 Cuenta Corriente</option>
+                            <option value="inversion">📈 Cuenta de Inversión</option>
+                            <option value="credito">💳 Cuenta de Crédito</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <label for="cuenta-usuario-id" class="block text-sm font-medium text-gray-700 mb-2">
+                        <span class="material-icons text-sm mr-1">person</span>
+                        ID del usuario
+                    </label>
+                    <input type="number" 
+                           id="cuenta-usuario-id" 
+                           placeholder="Ingresa el ID del usuario" 
+                           class="form-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none" 
+                           required />
+                </div>
+
+                <div class="flex flex-col sm:flex-row gap-4 pt-4">
+                    <button type="submit" 
+                            class="btn-primary flex-1 text-white px-6 py-4 rounded-xl font-medium hover:scale-105 transition-all duration-300 relative z-10 flex items-center justify-center">
+                        <span class="material-icons mr-2">save</span>
+                        <span id="btn-text">Crear Cuenta</span>
+                    </button>
+                    <button type="button" 
+                            onclick="hideForm()" 
+                            class="flex-1 bg-gray-200 text-gray-700 px-6 py-4 rounded-xl font-medium hover:bg-gray-300 transition-colors flex items-center justify-center">
+                        <span class="material-icons mr-2">cancel</span>
+                        Cancelar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </section>
+</main>
+
+<!-- Footer -->
+<footer class="mt-12 bg-white/50 backdrop-blur-sm border-t border-gray-200">
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1 text-green-500">security</span>
+                    <span>Protegido por SSL</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1 text-blue-500">support_agent</span>
+                    <span>Soporte 24/7</span>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500">© 2024 AlkyWallet. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Función para mostrar la hora actual
+    function updateTime() {
+        const now = new Date();
+        const timeString = now.toLocaleString('es-AR', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+        });
+        document.getElementById('currentTime').textContent = timeString;
+    }
+
+    // Funciones para el formulario
+    function showCreateForm() {
+        document.getElementById('form-section').classList.remove('hidden');
+        document.getElementById('form-title').textContent = 'Crear Nueva Cuenta';
+        document.getElementById('btn-text').textContent = 'Crear Cuenta';
+        document.getElementById('cuenta-form').reset();
+        document.getElementById('cuenta-id').value = '';
+    }
+
+    function hideForm() {
+        document.getElementById('form-section').classList.add('hidden');
+    }
+
+    function editAccount(id) {
+        // Función para editar cuenta (implementar según tu lógica)
+        showCreateForm();
+        document.getElementById('form-title').textContent = 'Editar Cuenta';
+        document.getElementById('btn-text').textContent = 'Actualizar Cuenta';
+        document.getElementById('cuenta-id').value = id;
+        // Cargar datos de la cuenta para edición
+    }
+
+    function deleteAccount(id) {
+        Swal.fire({
+            title: '¿Estás seguro?',
+            text: 'Esta acción no se puede deshacer',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, eliminar',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Implementar lógica de eliminación
+                Swal.fire('Eliminado', 'La cuenta ha sido eliminada correctamente', 'success');
+            }
+        });
+    }
+
+    function logout() {
+        Swal.fire({
+            title: '¿Cerrar sesión?',
+            text: 'Tu sesión se cerrará y volverás a la página de inicio',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#6b7280',
+            confirmButtonText: 'Sí, cerrar sesión',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                window.location.href = 'index.html';
+            }
+        });
+    }
+
+    // Actualizar hora cada segundo
+    updateTime();
+    setInterval(updateTime, 1000);
+
+    // Ejemplo de cuentas para mostrar
+    function loadAccounts() {
+        const cuentas = [
+            {
+                id: 1,
+                tipo: 'ahorro',
+                saldo: 125000.50,
+                usuario: 'Melina Rodriguez',
+                numero: '**** 4567',
+                icono: '💰',
+                color: 'blue'
+            },
+            {
+                id: 2,
+                tipo: 'corriente',
+                saldo: 89750.25,
+                usuario: 'Melina Rodriguez',
+                numero: '**** 8901',
+                icono: '🏦',
+                color: 'green'
+            }
+        ];
+
+        const listaCuentas = document.getElementById('lista-cuentas');
+        const emptyState = document.getElementById('empty-accounts');
+
+        if (cuentas.length === 0) {
+            emptyState.classList.remove('hidden');
+            return;
+        }
+
+        listaCuentas.innerHTML = cuentas.map(cuenta => `
+            <div class="account-item bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="w-16 h-16 bg-${cuenta.color}-100 rounded-xl flex items-center justify-center text-2xl">
+                            ${cuenta.icono}
+                        </div>
+                        <div>
+                            <h4 class="text-lg font-semibold text-gray-800 capitalize">${cuenta.tipo}</h4>
+                            <p class="text-sm text-gray-500">${cuenta.numero}</p>
+                            <p class="text-xs text-gray-400">${cuenta.usuario}</p>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-2xl font-bold text-${cuenta.color}-600">$${cuenta.saldo.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                        <div class="flex space-x-2 mt-2">
+                            <button onclick="editAccount(${cuenta.id})" 
+                                    class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors">
+                                <span class="material-icons text-sm">edit</span>
+                            </button>
+                            <button onclick="deleteAccount(${cuenta.id})" 
+                                    class="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors">
+                                <span class="material-icons text-sm">delete</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `).join('');
+
+        // Actualizar estadísticas
+        const totalBalance = cuentas.reduce((sum, cuenta) => sum + cuenta.saldo, 0);
+        document.getElementById('totalBalance').textContent = totalBalance.toLocaleString('es-AR', {minimumFractionDigits: 2});
+        document.getElementById('activeAccounts').textContent = cuentas.length;
+    }
+
+    // Cargar cuentas al inicio
+    loadAccounts();
+
+    // Script para el formulario (integrar con tu cuenta.js existente)
+    document.getElementById('cuenta-form').addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        const formData = {
+            id: document.getElementById('cuenta-id').value,
+            saldo: document.getElementById('cuenta-saldo').value,
+            tipo: document.getElementById('cuenta-tipo').value,
+            usuarioId: document.getElementById('cuenta-usuario-id').value
+        };
+
+        // Aquí integrar con tu lógica existente de cuenta.js
+        console.log('Datos del formulario:', formData);
+        
+        Swal.fire({
+            title: 'Éxito',
+            text: formData.id ? 'Cuenta actualizada correctamente' : 'Cuenta creada correctamente',
+            icon: 'success',
+            timer: 2000,
+            showConfirmButton: false
+        }).then(() => {
+            hideForm();
+            loadAccounts(); // Recargar la lista
+        });
+    });
+</script>
+
+<!-- Incluir tu script cuenta.js existente -->
+<script src="js/cuenta.js"></script>
+</body>
+</html>

@@ -101,3 +101,4 @@
         lastUpdateMinutes++;
         document.getElementById('lastUpdate').textContent = `hace ${lastUpdateMinutes} min`;
     }, 60000);
+    

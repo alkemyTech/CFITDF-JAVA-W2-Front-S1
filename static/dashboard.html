@@ -145,7 +145,20 @@
             border-left-color: #667eea;
             background: rgba(102, 126, 234, 0.05);
         }
-    </style>
+   
+<!-- Contenido principal -->
+<main class="container mx-auto p-4 lg:p-6">
+    <!-- Sección de saldo -->
+    <section class="mb-8 slide-in">
+        <div class="balance-card rounded-3xl p-8 text-white shadow-2xl hover-scale">
+            <div class="relative z-10">
+                <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
+                    <!-- Información del saldo -->
+                    <div class="flex-1">
+                        <div class="flex items-center mb-2">
+                            <span class="material-icons mr-2 opacity-80">account_balance</span>
+                            <p class="text-sm opacity-90">Saldo disponible</p>
+=======
     </head>
     <body class="gradient-bg text-gray-800 min-h-screen">
 
@@ -161,6 +174,7 @@
                             class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl floating-animation">
                             <span
                                 class="material-icons text-white text-2xl">account_balance_wallet</span>
+
                         </div>
                         <div>
                             <h1
@@ -497,7 +511,46 @@
             </div>
         </footer>
 
-        <!-- Script dashboard.js -->
-        <script src="./js/dashboard.js"></script>
-    </body>
+
+            <!-- Estado vacío -->
+            <div id="emptyState" class="hidden text-center py-12">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-icons text-gray-400 text-3xl">receipt_long</span>
+                </div>
+                <h4 class="text-lg font-medium text-gray-600 mb-2">No hay movimientos recientes</h4>
+                <p class="text-gray-500 mb-6">Tus transacciones aparecerán aquí cuando realices alguna operación</p>
+                <a href="carga.html"
+                   class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                    <span class="material-icons mr-2">add</span>
+                    Cargar saldo
+                </a>
+            </div>
+        </div>
+    </section>
+
+</main>
+
+<!-- Footer -->
+<footer class="mt-12 bg-white/50 backdrop-blur-sm border-t border-gray-200">
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div class="flex items-center space-x-4 text-sm text-gray-600">
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1 text-green-500">security</span>
+                    <span>Protegido por SSL</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1 text-blue-500">support_agent</span>
+                    <span>Soporte 24/7</span>
+                </div>
+            </div>
+            <p class="text-sm text-gray-500">© 2024 AlkyWallet. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<!-- Script dashboard.js -->
+<script src="./js/dashboard.js"></script>
+</body>
+
 </html>
