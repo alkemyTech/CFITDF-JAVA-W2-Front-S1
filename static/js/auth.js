@@ -16,66 +16,82 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Form submission with enhanced UX
-    const loginForm = document.getElementById('loginForm');
-    loginForm.addEventListener('submit', function(e) {
-        e.preventDefault();
+    // Form submission with enhanced UX
+const loginForm = document.getElementById('loginForm');
+loginForm.addEventListener('submit', function(e) {
+    e.preventDefault();
 
-        const submitBtn = this.querySelector('button[type="submit"]');
-        const originalText = submitBtn.innerHTML;
+    const submitBtn = this.querySelector('button[type="submit"]');
+    const originalText = submitBtn.innerHTML;
 
-        // Loading state
-        submitBtn.innerHTML = '<span class="material-icons animate-spin">sync</span><span>Iniciando sesión...</span>';
-        submitBtn.disabled = true;
+    // Loading state
+    submitBtn.innerHTML = '<span class="material-icons animate-spin">sync</span><span>Iniciando sesión...</span>';
+    submitBtn.disabled = true;
 
-        // Simulate API call (reemplaza esto con tu llamada real)
-        const userData = {
-            email: document.getElementById('email').value,
-            password: document.getElementById('password').value
-        };
+    // Gather user data
+    const userData = {
+        email: document.getElementById('email').value,
+        password: document.getElementById('password').value
+    };
 
-        fetch('http://localhost:8080/auth/login', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(userData)
-        })
-        .then(response => {
-            if (!response.ok) {
-                throw new Error('Credenciales incorrectas');
-            }
-            return response.json();
-        })
-        .then(data => {
-            // Reset button
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
-
-            // Show success message
-            Swal.fire({
-                icon: 'success',
-                title: '¡Bienvenido!',
-                text: 'Iniciando sesión...',
-                timer: 2000,
-                showConfirmButton: false
-            }).then(() => {
-                // Redirigir a la página principal o dashboard
-                window.location.href = 'dashboard.html'; // Cambia esto a la ruta correcta
+    // Make API call
+    fetch('http://localhost:8080/auth/login', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(userData)
+    })
+    .then(response => {
+        if (!response.ok) {
+            return response.json().then(err => {
+                throw new Error(err.message || 'Credenciales incorrectas');
             });
-        })
-        .catch(error => {
-            // Reset button
-            submitBtn.innerHTML = originalText;
-            submitBtn.disabled = false;
+        }
+        return response.json();
+    })
+    .then(data => {
+        // Reset button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
 
-            // Show error message
-            Swal.fire({
-                icon: 'error',
-                title: 'Oops...',
-                text: error.message,
-            });
+        // Check the role and redirect accordingly
+        let redirectUrl;
+        switch (data.rol) {
+            case 'ADMIN':
+                redirectUrl = 'dashboardAdmin.html';
+                break;
+            default:
+                redirectUrl = 'dashboard.html';
+                break;
+        }
+
+        // Show success message
+        Swal.fire({
+            icon: 'success',
+            title: '¡Bienvenido!',
+            text: 'Iniciando sesión...',
+            timer: 2000,
+            showConfirmButton: false
+        }).then(() => {
+            // Redirigir a la página correspondiente
+            window.location.href = redirectUrl;
+        });
+    })
+    .catch(error => {
+        // Reset button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+
+        // Show error message
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: error.message,
         });
     });
+});
+
 
     // Input validation feedback
     const inputs = document.querySelectorAll('input[required]');
