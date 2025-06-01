@@ -404,22 +404,39 @@ function eliminarCuenta(id) {
     });
 }
 
-function logout() {
-    Swal.fire({
-        title: '¿Cerrar sesión?',
-        text: 'Tu sesión se cerrará y volverás a la página de inicio',
-        icon: 'question',
-        showCancelButton: true,
-        confirmButtonColor: '#3085d6',
-        cancelButtonColor: '#6b7280',
-        confirmButtonText: 'Sí, cerrar sesión',
-        cancelButtonText: 'Cancelar'
-    }).then((result) => {
-        if (result.isConfirmed) {
-            window.location.href = 'index.html';
+        function logout() {
+            Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: 'Se cerrará tu sesión actual',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Limpiar el localStorage
+                    localStorage.removeItem('usuarioId');
+                    localStorage.removeItem('nombreUsuario');
+                    localStorage.removeItem('apellidoUsuario');
+                    localStorage.removeItem('RolUsuario');
+                    localStorage.removeItem('cuentaIds');
+
+                    // Mostrar mensaje de cerrando sesión
+                    Swal.fire({
+                        title: 'Cerrando sesión...',
+                        timer: 1500,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        willClose: () => {
+                            // Redirigir a la página de inicio de sesión
+                            window.location.href = 'index.html'; // Cambia esto por la URL de tu página de inicio de sesión
+                        }
+                    });
+                }
+            });
         }
-    });
-}
 
 // Funciones globales para compatibilidad con el HTML
 window.showCreateForm = mostrarFormulario;
