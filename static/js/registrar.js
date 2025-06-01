@@ -1,7 +1,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     const registerForm = document.getElementById('registerForm');
+    const provinciaSelect = document.getElementById("provincia");
+    const municipioSelect = document.getElementById("municipio");
 
-    if (registerForm) { // Verifica que el formulario exista
+    // Verifica que el formulario exista
+    if (registerForm) {
         registerForm.addEventListener('submit', function(event) {
             event.preventDefault(); // Evita que el formulario se envíe de la manera tradicional
 
@@ -9,13 +12,53 @@ document.addEventListener('DOMContentLoaded', function() {
             const nombre = document.getElementById('nombre').value;
             const apellido = document.getElementById('apellido').value;
             const email = document.getElementById('email').value;
+            const dni = document.getElementById('dni').value;
+            const telefono = document.getElementById('telefono').value;
+            const fechaNacimiento = document.getElementById('fechaNacimiento').value;
+
+            // Obtén el nombre de la provincia y municipio seleccionados
+            const provincia = provinciaSelect.options[provinciaSelect.selectedIndex].text; // Obtener nombre de la provincia
+            const municipio = municipioSelect.options[municipioSelect.selectedIndex].text; // Obtener nombre del municipio
+
+            const direccion = document.getElementById('direccion').value;
+            const numero = document.getElementById('numero').value; // Obtener el número de la dirección
             const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value; // Asegúrate de obtener confirmPassword
+
+            // Validar campos
+            if (!nombre || !apellido || !email || !dni || !telefono || !fechaNacimiento || !provincia || !municipio || !direccion || !numero || !password) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Todos los campos son obligatorios.',
+                });
+                return; // Evita enviar la solicitud si hay campos vacíos
+            }
+
+            // Validar que las contraseñas coincidan
+            if (password !== confirmPassword) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Error',
+                    text: 'Las contraseñas no coinciden.',
+                });
+                return;
+            }
+
+            // Combinar dirección y número
+            const fullAddress = `${direccion} ${numero}`;
 
             // Crea el objeto de datos que se enviará
             const userData = {
                 nombre: nombre,
                 apellido: apellido,
                 email: email,
+                dni: dni,
+                telefono: telefono,
+                fechaNacimiento: fechaNacimiento,
+                provincia: provincia, // Usar el nombre de la provincia
+                ciudad: municipio, // Usar el nombre del municipio
+                direccion: fullAddress, // Usar la dirección combinada
                 password: password
             };
 
@@ -29,7 +72,7 @@ document.addEventListener('DOMContentLoaded', function() {
             })
             .then(response => {
                 if (!response.ok) {
-                    throw new Error('Error en la conexión con el servidor');
+                    return response.json().then(err => { throw new Error(err.message || 'Error en la conexión con el servidor'); });
                 }
                 return response.json();
             })
@@ -45,15 +88,63 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             })
             .catch(error => {
-                // Manejo de errores
+                console.error('Error en la solicitud:', error);
                 Swal.fire({
                     icon: 'error',
                     title: 'Oops...',
-                    text: error.message,
+                    text: error.message || 'Error desconocido.',
                 });
             });
         });
     } else {
         console.error('El formulario no se encontró. Verifica el ID.');
     }
+
+    // Función para cargar provincias
+    function cargarProvincias() {
+        fetch('http://localhost:8080/api/provincias')
+            .then(response => response.json())
+            .then(data => {
+                data.forEach(provincia => {
+                    const option = document.createElement("option");
+                    option.value = provincia.id; // ID se mantiene para la selección
+                    option.textContent = provincia.nombre; // Nombre se muestra en el select
+                    provinciaSelect.appendChild(option);
+                });
+            })
+            .catch(error => console.error('Error al cargar provincias:', error));
+    }
+
+    // Función para cargar municipios según la provincia seleccionada
+    function cargarMunicipios(provinciaId) {
+        municipioSelect.innerHTML = '<option value="">Selecciona un municipio</option>'; // Resetear municipios
+        municipioSelect.disabled = true; // Deshabilitar el select de municipios
+
+        if (provinciaId) {
+            fetch(`http://localhost:8080/api/municipios?provincia=${provinciaId}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(municipio => {
+                        const option = document.createElement("option");
+                        option.value = municipio.id; // ID se mantiene para la selección
+                        option.textContent = municipio.nombre; // Nombre se muestra en el select
+                        municipioSelect.appendChild(option);
+                    });
+                    municipioSelect.disabled = false; // Habilitar el select de municipios
+                })
+                .catch(error => console.error('Error al cargar municipios:', error));
+        }
+    }
+
+    // Cargar provincias al iniciar
+    cargarProvincias();
+
+    // Evento para cargar municipios cuando se selecciona una provincia
+    provinciaSelect.addEventListener("change", function() {
+        const provinciaId = this.value;
+        cargarMunicipios(provinciaId);
+    });
 });
+
+
+
