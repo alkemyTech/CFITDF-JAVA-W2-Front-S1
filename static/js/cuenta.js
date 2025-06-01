@@ -1122,15 +1122,32 @@ function logout() {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
-            // Limpiar datos de autenticación
+            // Limpiar localStorage y sessionStorage
             localStorage.removeItem('usuario');
             sessionStorage.removeItem('usuario');
-            
-            // Redirigir al login
-            window.location.href = 'index.html';
+
+            // También limpiamos claves antiguas si existieran
+            localStorage.removeItem('usuarioId');
+            localStorage.removeItem('nombreUsuario');
+            localStorage.removeItem('apellidoUsuario');
+            localStorage.removeItem('RolUsuario');
+            localStorage.removeItem('cuentaIds');
+
+            // Mostrar mensaje opcional antes de redirigir
+            Swal.fire({
+                title: 'Cerrando sesión...',
+                timer: 1500,
+                timerProgressBar: true,
+                showConfirmButton: false,
+                willClose: () => {
+                    window.location.href = 'index.html';
+                }
+            });
         }
     });
 }
+
+        }
 
 // Funciones globales para compatibilidad con el HTML
 window.showCreateForm = mostrarFormulario;
