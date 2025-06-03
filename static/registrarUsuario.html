@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <title>AlkyWallet - Registro/Modificación</title>
+    <title>AlkyWallet - Registro</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
     <!-- Tailwind CSS CDN -->
@@ -55,6 +55,7 @@
             border-radius: 1rem; /* Ajustar bordes */
         }
 
+        /* Estilo para la fila de campos */
         .field-row {
             display: flex;
             justify-content: space-between;
@@ -65,6 +66,7 @@
             flex: 1; /* Cada campo ocupa el 50% del ancho */
         }
 
+        /* Ajuste para el ancho del formulario */
         .form-container {
             max-width: 800px; /* Aumentar el ancho máximo */
             width: 100%; /* Asegurar que el ancho sea del 100% */
@@ -98,14 +100,12 @@
 <main class="flex-1 flex items-center justify-center p-4">
     <div class="form-container w-full">
         <div class="text-center mb-8">
-            <h2 class="text-3xl font-bold text-white mt-4 mb-2">¡Registrar/Modificar Usuario!</h2>
-            <p class="text-blue-100">Crea o modifica tu cuenta en tu billetera digital</p>
+            <h2 class="text-3xl font-bold text-white mt-4 mb-2">¡Regístrate!</h2>
+            <p class="text-blue-100">Crea tu cuenta en tu billetera digital</p>
         </div>
 
         <div class="glass-effect rounded-3xl p-8 shadow-2xl">
-            <form id="userForm" class="space-y-6">
-                <input type="hidden" id="userId" value=""> <!-- Campo oculto para el ID del usuario -->
-
+            <form id="registerForm" class="space-y-6">
                 <!-- Fila Nombre y Apellido -->
                 <div class="field-row">
                     <div class="space-y-2">
@@ -200,27 +200,27 @@
                     </div>
                 </div>
 
-                <!-- Fila Contraseña y Repetir Contraseña (opcional para modificación) -->
+                <!-- Fila Contraseña y Repetir Contraseña -->
                 <div class="field-row">
                     <div class="space-y-2">
                         <label for="password" class="flex items-center text-sm font-medium text-gray-700">
                             <span class="material-icons text-blue-500 mr-2 text-sm">lock</span>
-                            Contraseña (opcional)
+                            Contraseña
                         </label>
-                        <input type="password" id="password" placeholder="Tu contraseña" class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="password" id="password" placeholder="Tu contraseña" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                     <div class="space-y-2">
                         <label for="confirmPassword" class="flex items-center text-sm font-medium text-gray-700">
                             <span class="material-icons text-blue-500 mr-2 text-sm">lock</span>
-                            Repetir Contraseña (opcional)
+                            Repetir Contraseña
                         </label>
-                        <input type="password" id="confirmPassword" placeholder="Repite tu contraseña" class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <input type="password" id="confirmPassword" placeholder="Repite tu contraseña" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
                     </div>
                 </div>
 
                 <button type="submit" class="pulse-shadow w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 rounded-xl font-semibold transition-all duration-300">
                     <span class="material-icons">person_add</span>
-                    <span id="submitButtonText">Registrar</span>
+                    <span>Registrar</span>
                 </button>
 
                 <div class="mt-6 text-center">
@@ -253,112 +253,8 @@
 
 <script src="./js/registrar.js"></script>
 <script src="./js/auth.js"></script>
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const userForm = document.getElementById('userForm');
-        const provinciaSelect = document.getElementById("provincia");
-        const municipioSelect = document.getElementById("municipio");
-
-        // Función para cargar datos del usuario
-        async function cargarDatosUsuario() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('id'); // Obtener el ID del usuario de la URL
-
-            if (userId) {
-                try {
-                    const response = await fetch(`http://localhost:8080/api/usuario/${userId}`);
-                    if (!response.ok) throw new Error('Error al cargar los datos del usuario');
-
-                    const usuario = await response.json();
-                    llenarFormulario(usuario); // Llenar el formulario con los datos del usuario
-                } catch (error) {
-                    console.error(error);
-                    Swal.fire('Error', 'No se pudieron cargar los datos del usuario.', 'error');
-                }
-            }
-        }
-
-        // Función para llenar el formulario con los datos del usuario
-        function llenarFormulario(usuario) {
-            document.getElementById('userId').value = usuario.id; // Asigna el ID al campo oculto
-            document.getElementById('nombre').value = usuario.nombre;
-            document.getElementById('apellido').value = usuario.apellido;
-            document.getElementById('email').value = usuario.email;
-            document.getElementById('dni').value = usuario.dni;
-            document.getElementById('telefono').value = usuario.telefono;
-            document.getElementById('fechaNacimiento').value = usuario.fechaNacimiento;
-
-            // Asignar valores a provincia y municipio si están disponibles
-            document.getElementById('provincia').value = usuario.provincia.id; // Asume que provincia es un objeto con un ID
-            cargarMunicipios(usuario.provincia.id); // Cargar municipios basados en la provincia
-            document.getElementById('municipio').value = usuario.ciudad.id; // Asume que ciudad es un objeto con un ID
-            document.getElementById('direccion').value = usuario.direccion;
-            document.getElementById('numero').value = usuario.numero;
-        }
-
-        // Verifica que el formulario exista
-        if (userForm) {
-            userForm.addEventListener('submit', function(event) {
-                event.preventDefault(); // Evita que el formulario se envíe de la manera tradicional
-                // Aquí va tu lógica para manejar el envío del formulario
-            });
-        } else {
-            console.error('El formulario no se encontró. Verifica el ID.');
-        }
-
-        // Función para cargar provincias
-        function cargarProvincias() {
-            fetch('http://localhost:8080/api/provincias')
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(provincia => {
-                        const option = document.createElement("option");
-                        option.value = provincia.id; // ID se mantiene para la selección
-                        option.textContent = provincia.nombre; // Nombre se muestra en el select
-                        provinciaSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error al cargar provincias:', error));
-        }
-
-        // Función para cargar municipios según la provincia seleccionada
-        function cargarMunicipios(provinciaId) {
-            municipioSelect.innerHTML = '<option value="">Selecciona un municipio</option>'; // Resetear municipios
-            municipioSelect.disabled = true; // Deshabilitar el select de municipios
-
-            if (provinciaId) {
-                fetch(`http://localhost:8080/api/municipios?provincia=${provinciaId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(municipio => {
-                            const option = document.createElement("option");
-                            option.value = municipio.id; // ID se mantiene para la selección
-                            option.textContent = municipio.nombre; // Nombre se muestra en el select
-                            municipioSelect.appendChild(option);
-                        });
-                        municipioSelect.disabled = false; // Habilitar el select de municipios
-                    })
-                    .catch(error => console.error('Error al cargar municipios:', error));
-            }
-        }
-
-        // Cargar provincias al iniciar
-        cargarProvincias();
-
-        // Evento para cargar municipios cuando se selecciona una provincia
-        provinciaSelect.addEventListener("change", function() {
-            const provinciaId = this.value;
-            cargarMunicipios(provinciaId);
-        });
-
-        // Llamar a la función para cargar datos del usuario
-        cargarDatosUsuario();
-    });
-</script>
-
 </body>
-</html>
-                   
+</html>  
 
 
 

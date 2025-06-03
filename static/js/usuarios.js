@@ -42,17 +42,20 @@ function mostrarUsuarios(usuarios) {
             <td class="px-6 py-4">${usuario.nombre} ${usuario.apellido}</td>
             <td class="px-6 py-4">${usuario.email}</td>
             <td class="px-6 py-4">${new Date(usuario.fechaRegistro).toLocaleDateString()}</td>
-            <td class="px-6 py-4">${usuario.enabled ? 'Activo' : 'Inactivo'}</td>
+            <td class="px-6 py-4">${usuario.activo ? 'Activo' : 'Inactivo'}</td>
             <td class="px-6 py-4">
                 <button onclick="verUsuario(${usuario.id})" class="text-blue-600 hover:text-blue-800">Ver</button>
                 <button onclick="modificarUsuario(${usuario.id})" class="text-green-600 hover:text-green-800 ml-2">Modificar</button>
                 <button onclick="eliminarUsuario(${usuario.id})" class="text-red-600 hover:text-red-800 ml-2">Eliminar</button>
+                ${usuario.activo 
+                    ? `<button onclick="desactivarUsuario(${usuario.id})" class="text-red-600 hover:text-red-800 ml-2">Desactivar</button>` 
+                    : `<button onclick="activarUsuario(${usuario.id})" class="text-green-600 hover:text-green-800 ml-2">Activar</button>`}
             </td>
         `;
         tablaUsuarios.appendChild(row);
 
         // Contar activos e inactivos
-        if (usuario.enabled) {
+        if (usuario.activo) {
             totalActivos++;
         } else {
             totalInactivos++;
@@ -90,6 +93,13 @@ async function cargarDetallesUsuario(id) {
 
 function mostrarDetalles(usuario) {
     const usuarioDetalles = document.getElementById('usuarioDetalles');
+    const fechaNacimiento = new Date(usuario.fechaNacimiento);
+    
+    // Ajustar la fecha si es necesario
+    if (fechaNacimiento.getUTCHours() === 0 && fechaNacimiento.getUTCMinutes() === 0 && fechaNacimiento.getUTCSeconds() === 0) {
+        fechaNacimiento.setDate(fechaNacimiento.getDate() + 1);
+    }
+
     usuarioDetalles.innerHTML = `
         <h2 class="text-2xl font-bold mb-4">${usuario.nombre} ${usuario.apellido}</h2>
         <p><strong>Email:</strong> ${usuario.email}</p>
@@ -97,9 +107,9 @@ function mostrarDetalles(usuario) {
         <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
         <p><strong>Provincia:</strong> ${usuario.provincia}</p>
         <p><strong>Ciudad:</strong> ${usuario.ciudad}</p>
-        <p><strong>Fecha de nacimiento:</strong> ${new Date(usuario.fechaNacimiento).toLocaleDateString()}</p>
+        <p><strong>Fecha de nacimiento:</strong> ${fechaNacimiento.toLocaleDateString()}</p>
         <p><strong>Fecha de Registro:</strong> ${new Date(usuario.fechaRegistro).toLocaleDateString()}</p>
-        <p><strong>Estado:</strong> ${usuario.enabled ? 'Activo' : 'Inactivo'}</p>
+        <p><strong>Estado:</strong> ${usuario.activo ? 'Activo' : 'Inactivo'}</p>
     `;
 }
 
@@ -147,6 +157,60 @@ async function eliminarUsuario(id) {
     }
 }
 
+async function desactivarUsuario(id) {
+        const confirmDelete = await Swal.fire({
+        title: '¿Estás seguro?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, desactivarlo!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (confirmDelete.isConfirmed) {
+        try {
+            const response = await fetch(`${API_URL}/${id}/desactivar`, {
+                method: 'PUT'
+            });
+
+            if (!response.ok) throw new Error('Error al desactivar el usuario');
+
+            Swal.fire('Desactivado!', 'El usuario ha sido desactivado.', 'success');
+            cargarUsuarios(); // Recargar usuarios
+        } catch (error) {
+            Swal.fire('Error!', 'Hubo un problema al desactivar el usuario.', 'error');
+        }
+    }
+}
+
+async function activarUsuario(id) {
+        const confirmDelete = await Swal.fire({
+        title: '¿Estás seguro?',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#28a400',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: 'Sí, activarlo!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (confirmDelete.isConfirmed) {
+        try {
+            const response = await fetch(`${API_URL}/${id}/activar`, {
+                method: 'PUT'
+            });
+
+            if (!response.ok) throw new Error('Error al activar el usuario');
+
+            Swal.fire('Activado!', 'El usuario ha sido activado.', 'success');
+            cargarUsuarios(); // Recargar usuarios
+        } catch (error) {
+            Swal.fire('Error!', 'Hubo un problema al activar el usuario.', 'error');
+        }
+    }
+}
+
 // Función para buscar usuarios
 async function buscarUsuarios() {
     const busqueda = document.getElementById('buscarUsuario').value;
@@ -178,6 +242,40 @@ async function buscarUsuarios() {
         document.getElementById('loadingUsuarios').classList.add('hidden');
     }
 }
+
+function logout() {
+            Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: 'Se cerrará tu sesión actual',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Limpiar el localStorage
+                    localStorage.removeItem('usuarioId');
+                    localStorage.removeItem('nombreUsuario');
+                    localStorage.removeItem('apellidoUsuario');
+                    localStorage.removeItem('RolUsuario');
+                    localStorage.removeItem('cuentaIds');
+
+                    // Mostrar mensaje de cerrando sesión
+                    Swal.fire({
+                        title: 'Cerrando sesión...',
+                        timer: 1500,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        willClose: () => {
+                            // Redirigir a la página de inicio de sesión
+                            window.location.href = 'index.html'; // Cambia esto por la URL de tu página de inicio de sesión
+                        }
+                    });
+                }
+            });
+        }
 
 // Event listeners
 document.getElementById('buscarUsuario').addEventListener('input', buscarUsuarios);

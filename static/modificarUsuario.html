@@ -34,12 +34,12 @@
 
         .input-focus {
             transition: all 0.3s ease;
-            padding: 12px; /* Reducir padding */
-            font-size: 0.9rem; /* Reducir tamaño de fuente */
+            padding: 12px;
+            font-size: 0.9rem;
         }
 
         .space-y-2 {
-            margin-bottom: 0.5rem; /* Reducir espacio entre campos */
+            margin-bottom: 0.5rem;
         }
 
         .pulse-shadow {
@@ -52,22 +52,22 @@
         }
 
         .rounded-3xl {
-            border-radius: 1rem; /* Ajustar bordes */
+            border-radius: 1rem;
         }
 
         .field-row {
             display: flex;
             justify-content: space-between;
-            gap: 10px; /* Espacio entre los campos */
+            gap: 10px;
         }
 
         .field-row > div {
-            flex: 1; /* Cada campo ocupa el 50% del ancho */
+            flex: 1;
         }
 
         .form-container {
-            max-width: 800px; /* Aumentar el ancho máximo */
-            width: 100%; /* Asegurar que el ancho sea del 100% */
+            max-width: 800px;
+            width: 100%;
         }
     </style>
 </head>
@@ -104,7 +104,7 @@
 
         <div class="glass-effect rounded-3xl p-8 shadow-2xl">
             <form id="userForm" class="space-y-6">
-                <input type="hidden" id="userId" value=""> <!-- Campo oculto para el ID del usuario -->
+                <input type="hidden" id="userId" value="">
 
                 <!-- Fila Nombre y Apellido -->
                 <div class="field-row">
@@ -200,7 +200,7 @@
                     </div>
                 </div>
 
-                <!-- Fila Contraseña y Repetir Contraseña (opcional para modificación) -->
+                <!-- Fila Contraseña y Repetir Contraseña -->
                 <div class="field-row">
                     <div class="space-y-2">
                         <label for="password" class="flex items-center text-sm font-medium text-gray-700">
@@ -250,27 +250,31 @@
         </div>
     </div>
 </main>
-
-<script src="./js/registrar.js"></script>
 <script src="./js/auth.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const userForm = document.getElementById('userForm');
         const provinciaSelect = document.getElementById("provincia");
         const municipioSelect = document.getElementById("municipio");
+        
+        // Variable para almacenar los datos del usuario temporalmente
+        let datosUsuario = null;
 
         // Función para cargar datos del usuario
         async function cargarDatosUsuario() {
             const urlParams = new URLSearchParams(window.location.search);
-            const userId = urlParams.get('id'); // Obtener el ID del usuario de la URL
+            const userId = urlParams.get('id');
 
             if (userId) {
                 try {
                     const response = await fetch(`http://localhost:8080/api/usuario/${userId}`);
                     if (!response.ok) throw new Error('Error al cargar los datos del usuario');
 
-                    const usuario = await response.json();
-                    llenarFormulario(usuario); // Llenar el formulario con los datos del usuario
+                    datosUsuario = await response.json();
+                    
+                    // Primero cargar las provincias, luego llenar el formulario
+                    await cargarProvincias();
+                    
                 } catch (error) {
                     console.error(error);
                     Swal.fire('Error', 'No se pudieron cargar los datos del usuario.', 'error');
@@ -279,53 +283,136 @@
         }
 
         // Función para llenar el formulario con los datos del usuario
-        function llenarFormulario(usuario) {
-            document.getElementById('userId').value = usuario.id; // Asigna el ID al campo oculto
-            document.getElementById('nombre').value = usuario.nombre;
-            document.getElementById('apellido').value = usuario.apellido;
-            document.getElementById('email').value = usuario.email;
-            document.getElementById('dni').value = usuario.dni;
-            document.getElementById('telefono').value = usuario.telefono;
-            document.getElementById('fechaNacimiento').value = usuario.fechaNacimiento;
+        async function llenarFormulario(usuario) {
+            document.getElementById('userId').value = usuario.id;
+            document.getElementById('nombre').value = usuario.nombre || '';
+            document.getElementById('apellido').value = usuario.apellido || '';
+            document.getElementById('email').value = usuario.email || '';
+            document.getElementById('dni').value = usuario.dni || '';
+            document.getElementById('telefono').value = usuario.telefono || '';
+            document.getElementById('fechaNacimiento').value = usuario.fechaNacimiento || '';
+            document.getElementById('direccion').value = usuario.direccion || '';
+            document.getElementById('numero').value = usuario.numeroD || '';
 
-            // Asignar valores a provincia y municipio si están disponibles
-            document.getElementById('provincia').value = usuario.provincia.id; // Asume que provincia es un objeto con un ID
-            cargarMunicipios(usuario.provincia.id); // Cargar municipios basados en la provincia
-            document.getElementById('municipio').value = usuario.ciudad.id; // Asume que ciudad es un objeto con un ID
-            document.getElementById('direccion').value = usuario.direccion;
-            document.getElementById('numero').value = usuario.numero;
+            // Asignar provincia y cargar municipios
+            if (usuario.provincia) {
+                provinciaSelect.value = usuario.provincia;
+                
+                // Cargar municipios para la provincia del usuario
+                await cargarMunicipios(usuario.provincia);
+                
+                // Asignar municipio después de que se hayan cargado
+                if (usuario.ciudad) {
+                    municipioSelect.value = usuario.ciudad;
+                }
+            }
         }
 
-        // Verifica que el formulario exista
+        // Función para cargar provincias (ahora retorna una Promise)
+        function cargarProvincias() {
+            return fetch('http://localhost:8080/api/provincias')
+                .then(response => response.json())
+                .then(data => {
+                    // Limpiar opciones existentes (excepto la primera)
+                    provinciaSelect.innerHTML = '<option value="">Selecciona una provincia</option>';
+                    
+                    data.forEach(provincia => {
+                        const option = document.createElement("option");
+                        option.value = provincia.nombre;
+                        option.textContent = provincia.nombre;
+                        provinciaSelect.appendChild(option);
+                    });
+                    
+                    // Llenar el formulario después de cargar las provincias
+                    if (datosUsuario) {
+                        llenarFormulario(datosUsuario);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar provincias:', error);
+                    Swal.fire('Error', 'No se pudieron cargar las provincias.', 'error');
+                });
+        }
+
+        // Función para cargar municipios (ahora retorna una Promise)
+        function cargarMunicipios(provinciaNombre) {
+            municipioSelect.innerHTML = '<option value="">Selecciona un municipio</option>';
+            municipioSelect.disabled = true;
+
+            if (!provinciaNombre) {
+                return Promise.resolve();
+            }
+
+            return fetch(`http://localhost:8080/api/municipios?provincia=${encodeURIComponent(provinciaNombre)}`)
+                .then(response => response.json())
+                .then(data => {
+                    data.forEach(municipio => {
+                        const option = document.createElement("option");
+                        option.value = municipio.nombre;
+                        option.textContent = municipio.nombre;
+                        municipioSelect.appendChild(option);
+                    });
+                    municipioSelect.disabled = false;
+                })
+                .catch(error => {
+                    console.error('Error al cargar municipios:', error);
+                    Swal.fire('Error', 'No se pudieron cargar los municipios.', 'error');
+                });
+        }
+
+        // Event listener para cambio de provincia
+        provinciaSelect.addEventListener("change", function() {
+            const provinciaNombre = this.value;
+            cargarMunicipios(provinciaNombre);
+        });
+
+        // Manejo del formulario
         if (userForm) {
             userForm.addEventListener('submit', function(event) {
-                event.preventDefault(); // Evita que el formulario se envíe de la manera tradicional
+                event.preventDefault();
 
-                // Obtén el ID del usuario
                 const userId = document.getElementById('userId').value;
-
-                // Obtén los valores de los campos
-                const nombre = document.getElementById('nombre').value;
-                const apellido = document.getElementById('apellido').value;
-                const email = document.getElementById('email').value;
-                const dni = document.getElementById('dni').value;
-                const telefono = document.getElementById('telefono').value;
+                const nombre = document.getElementById('nombre').value.trim();
+                const apellido = document.getElementById('apellido').value.trim();
+                const email = document.getElementById('email').value.trim();
+                const dni = document.getElementById('dni').value.trim();
+                const telefono = document.getElementById('telefono').value.trim();
                 const fechaNacimiento = document.getElementById('fechaNacimiento').value;
-                const direccion = document.getElementById('direccion').value;
-                const numero = document.getElementById('numero').value;
+                const direccion = document.getElementById('direccion').value.trim();
+                const numero = document.getElementById('numero').value.trim();
                 const password = document.getElementById('password').value;
+                const confirmPassword = document.getElementById('confirmPassword').value;
 
-                // Validar campos
+                // Validaciones
                 if (!nombre || !apellido || !email || !dni || !telefono || !fechaNacimiento || !direccion || !numero) {
                     Swal.fire({
                         icon: 'error',
                         title: 'Error',
                         text: 'Todos los campos son obligatorios.',
                     });
-                    return; // Evita enviar la solicitud si hay campos vacíos
+                    return;
                 }
 
-                // Crea el objeto de datos que se enviará
+                // Validar contraseñas si se proporcionan
+                if (password && password !== confirmPassword) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Las contraseñas no coinciden.',
+                    });
+                    return;
+                }
+
+                // Validar selección de provincia y municipio
+                if (!provinciaSelect.value || !municipioSelect.value) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Debes seleccionar provincia y municipio.',
+                    });
+                    return;
+                }
+
                 const userData = {
                     nombre: nombre,
                     apellido: apellido,
@@ -333,14 +420,19 @@
                     dni: dni,
                     telefono: telefono,
                     fechaNacimiento: fechaNacimiento,
-                    provincia: provinciaSelect.value, // Usar el ID de la provincia
-                    ciudad: municipioSelect.value, // Usar el ID del municipio
-                    direccion: `${direccion} ${numero}`, // Combinar dirección y número
-                    password: password ? password : undefined // Incluir la contraseña solo si se proporciona
+                    provincia: provinciaSelect.value,
+                    ciudad: municipioSelect.value,
+                    direccion: direccion,
+                    numeroD: numero
                 };
 
-                // Realiza la solicitud al backend para modificar el usuario
-                fetch(`http://localhost:8080/api/usuario/modificar/${userId}`, {
+                // Incluir contraseña solo si se proporciona
+                if (password) {
+                    userData.password = password;
+                }
+
+                // Enviar datos al servidor
+                fetch(`http://localhost:8080/api/usuario/${userId}`, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json'
@@ -349,26 +441,32 @@
                 })
                 .then(response => {
                     if (!response.ok) {
-                        return response.json().then(err => { throw new Error(err.message || 'Error en la conexión con el servidor'); });
+                        return response.json().then(err => {
+                            throw new Error(err.message || 'Error en la conexión con el servidor');
+                        });
                     }
                     return response.json();
                 })
                 .then(data => {
-                    // Muestra un mensaje de éxito
                     Swal.fire({
                         icon: 'success',
                         title: 'Modificación exitosa',
-                        text: '¡Datos del usuario modificados!',
+                        text: '¡Datos del usuario modificados correctamente!',
                     }).then(() => {
-                        window.location.href = 'index.html'; // Redirigir a la página de inicio
+                        const rolUsuario = localStorage.getItem('RolUsuario');
+                        if (rolUsuario === 'ADMIN') {
+                            window.location.href = 'usuarios.html';
+                        } else {
+                            window.location.href = 'index.html';
+                        }
                     });
                 })
                 .catch(error => {
                     console.error('Error en la solicitud:', error);
                     Swal.fire({
                         icon: 'error',
-                        title: 'Oops...',
-                        text: error.message || 'Error desconocido.',
+                        title: 'Error',
+                        text: error.message || 'Error desconocido al modificar el usuario.',
                     });
                 });
             });
@@ -376,57 +474,10 @@
             console.error('El formulario no se encontró. Verifica el ID.');
         }
 
-        // Función para cargar provincias
-        function cargarProvincias() {
-            fetch('http://localhost:8080/api/provincias')
-                .then(response => response.json())
-                .then(data => {
-                    data.forEach(provincia => {
-                                                const option = document.createElement("option");
-                        option.value = provincia.id; // ID se mantiene para la selección
-                        option.textContent = provincia.nombre; // Nombre se muestra en el select
-                        provinciaSelect.appendChild(option);
-                    });
-                })
-                .catch(error => console.error('Error al cargar provincias:', error));
-        }
-
-        // Función para cargar municipios según la provincia seleccionada
-        function cargarMunicipios(provinciaId) {
-            municipioSelect.innerHTML = '<option value="">Selecciona un municipio</option>'; // Resetear municipios
-            municipioSelect.disabled = true; // Deshabilitar el select de municipios
-
-            if (provinciaId) {
-                fetch(`http://localhost:8080/api/municipios?provincia=${provinciaId}`)
-                    .then(response => response.json())
-                    .then(data => {
-                        data.forEach(municipio => {
-                            const option = document.createElement("option");
-                            option.value = municipio.id; // ID se mantiene para la selección
-                            option.textContent = municipio.nombre; // Nombre se muestra en el select
-                            municipioSelect.appendChild(option);
-                        });
-                        municipioSelect.disabled = false; // Habilitar el select de municipios
-                    })
-                    .catch(error => console.error('Error al cargar municipios:', error));
-            }
-        }
-
-        // Cargar provincias al iniciar
-        cargarProvincias();
-
-        // Evento para cargar municipios cuando se selecciona una provincia
-        provinciaSelect.addEventListener("change", function() {
-            const provinciaId = this.value;
-            cargarMunicipios(provinciaId);
-        });
-
-        // Llamar a la función para cargar datos del usuario
+        // Inicializar la carga de datos
         cargarDatosUsuario();
     });
 </script>
-
 </body>
 </html>
-
 

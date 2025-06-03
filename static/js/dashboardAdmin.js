@@ -29,7 +29,7 @@ async function mostrarUltimosUsuarios() {
                     </div>
                 </div>
                 <div class="text-right">
-                    <p class="font-bold text-gray-800">${usuario.enabled ? 'Activo' : 'Inactivo'}</p>
+                    <p class="font-bold text-gray-800">${usuario.activo ? 'Activo' : 'Inactivo'}</p>
                 </div>
             `;
 
