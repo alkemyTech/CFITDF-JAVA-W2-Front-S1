@@ -78,6 +78,149 @@ function getMonedaSymbol(moneda) {
     return simbolos[moneda] || '$';
 }
 
+// Función para mostrar el resumen de una cuenta
+function mostrarResumen(cuentaId) {
+    // Mostrar indicador de carga
+    Swal.fire({
+        title: 'Cargando resumen...',
+        html: '<div class="pulse-animation">Obteniendo datos de la cuenta</div>',
+        allowOutsideClick: false,
+        showConfirmButton: false,
+        willOpen: () => {
+            Swal.showLoading();
+        }
+    });
+
+    // Hacer llamada a la API
+    fetch(`http://localhost:8080/api/cuentas/${cuentaId}/resumen`)
+        .then(response => {
+            if (!response.ok) {
+                throw new Error(`Error ${response.status}: ${response.statusText}`);
+            }
+            return response.json();
+        })
+        .then(resumen => {
+            mostrarModalResumen(resumen, cuentaId);
+        })
+        .catch(error => {
+            console.error('Error al obtener el resumen:', error);
+            Swal.fire({
+                title: 'Error',
+                text: 'No se pudo obtener el resumen de la cuenta. Por favor, intenta nuevamente.',
+                icon: 'error',
+                confirmButtonText: 'Entendido',
+                confirmButtonColor: '#667eea'
+            });
+        });
+}
+
+// Función para mostrar el modal con el resumen
+function mostrarModalResumen(resumen, cuentaId) {
+    const monedaIcono = resumen.moneda === 'dolar_cripto' ? '₿' : 
+                       resumen.moneda === 'dolar_comun' ? '💵' : '💰';
+    
+    const htmlResumen = `
+        <div class="resumen-modal text-left">
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4">
+                <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                    <span class="material-icons mr-2 text-blue-600">analytics</span>
+                    Resumen de la Cuenta #${cuentaId}
+                    <span class="ml-2 text-2xl">${monedaIcono}</span>
+                </h3>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-green-50 p-4 rounded-lg">
+                    <div class="flex items-center mb-2">
+                        <span class="material-icons text-green-600 mr-2">trending_up</span>
+                        <h4 class="font-semibold text-green-800">Ingresos</h4>
+                    </div>
+                    <p class="text-2xl font-bold text-green-600">${formatearSaldo(resumen.totalDepositado || 0, resumen.moneda || 'peso')}</p>
+                    <p class="text-sm text-green-700">Total depositado</p>
+                </div>
+                
+                <div class="bg-red-50 p-4 rounded-lg">
+                    <div class="flex items-center mb-2">
+                        <span class="material-icons text-red-600 mr-2">trending_down</span>
+                        <h4 class="font-semibold text-red-800">Egresos</h4>
+                    </div>
+                    <p class="text-2xl font-bold text-red-600">${formatearSaldo(resumen.totalExtraido || 0, resumen.moneda || 'peso')}</p>
+                    <p class="text-sm text-red-700">Total extraído</p>
+                </div>
+            </div>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                <div class="bg-blue-50 p-4 rounded-lg">
+                    <div class="flex items-center mb-2">
+                        <span class="material-icons text-blue-600 mr-2">swap_horiz</span>
+                        <h4 class="font-semibold text-blue-800">Transferencias</h4>
+                    </div>
+                    <p class="text-2xl font-bold text-blue-600">${formatearSaldo(resumen.totalTransferido || 0, resumen.moneda || 'peso')}</p>
+                    <p class="text-sm text-blue-700">Total transferido</p>
+                </div>
+                
+                <div class="bg-purple-50 p-4 rounded-lg">
+                    <div class="flex items-center mb-2">
+                        <span class="material-icons text-purple-600 mr-2">receipt</span>
+                        <h4 class="font-semibold text-purple-800">Transacciones</h4>
+                    </div>
+                    <p class="text-2xl font-bold text-purple-600">${resumen.cantidadTransacciones || 0}</p>
+                    <p class="text-sm text-purple-700">Total de operaciones</p>
+                </div>
+            </div>
+            
+            ${resumen.tipoUltimaTransaccion ? `
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                        <span class="material-icons mr-2 text-gray-600">history</span>
+                        Última Transacción
+                    </h4>
+                    <div class="space-y-2">
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Tipo:</span>
+                            <span class="font-medium capitalize">${resumen.tipoUltimaTransaccion}</span>
+                        </div>
+                        <div class="flex justify-between">
+                            <span class="text-gray-600">Monto:</span>
+                            <span class="font-medium">${formatearSaldo(resumen.montoUltimaTransaccion || 0, resumen.moneda || 'peso')}</span>
+                        </div>
+                        ${resumen.descripcionUltimaTransaccion ? `
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Descripción:</span>
+                                <span class="font-medium">${resumen.descripcionUltimaTransaccion}</span>
+                            </div>
+                        ` : ''}
+                    </div>
+                </div>
+            ` : `
+                <div class="bg-gray-50 p-4 rounded-lg text-center">
+                    <span class="material-icons text-gray-400 text-3xl mb-2">inbox</span>
+                    <p class="text-gray-600">No hay transacciones registradas</p>
+                </div>
+            `}
+        </div>
+    `;
+
+    Swal.fire({
+        html: htmlResumen,
+        width: '650px',
+        showCloseButton: true,
+        showConfirmButton: true,
+        confirmButtonText: 'Cerrar',
+        confirmButtonColor: '#667eea',
+        customClass: {
+            popup: 'rounded-xl',
+            content: 'p-0'
+        },
+        showClass: {
+            popup: 'animate__animated animate__fadeInDown'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOutUp'
+        }
+    });
+}
+
 // Función para cargar las cuentas y mostrarlas agrupadas por moneda
 function cargarCuentas() {
     fetch(`http://localhost:8080/api/cuentas/usuario/${usuarioId}`)
@@ -98,27 +241,11 @@ function cargarCuentas() {
             emptyState.classList.add('hidden');
             lista.classList.remove('hidden');
 
-            // Procesar cada cuenta con su resumen
-            const cuentasConResumen = await Promise.all(
-                cuentas.map(async cuenta => {
-                    try {
-                        const res = await fetch(`http://localhost:8080/api/cuentas/${cuenta.id}/resumen`);
-                        if (res.ok) {
-                            const resumen = await res.json();
-                            return { ...cuenta, resumen };
-                        }
-                    } catch (error) {
-                        console.error("Error al obtener resumen de cuenta:", error);
-                    }
-                    return { ...cuenta, resumen: null };
-                })
-            );
-
             // Agrupar cuentas por moneda
             const cuentasPorMoneda = {
-                peso: cuentasConResumen.filter(c => c.moneda === 'peso' || !c.moneda),
-                dolar_comun: cuentasConResumen.filter(c => c.moneda === 'dolar_comun'),
-                dolar_cripto: cuentasConResumen.filter(c => c.moneda === 'dolar_cripto')
+                peso: cuentas.filter(c => c.moneda === 'peso' || !c.moneda),
+                dolar_comun: cuentas.filter(c => c.moneda === 'dolar_comun'),
+                dolar_cripto: cuentas.filter(c => c.moneda === 'dolar_cripto')
             };
 
             // Generar HTML agrupado por moneda
@@ -181,48 +308,6 @@ function generarTarjetaCuenta(cuenta, tipoMoneda) {
     const icono = getAccountIcon(cuenta.tipo, tipoMoneda);
     const color = getAccountColor(cuenta.tipo, tipoMoneda);
     
-    let resumenHTML = '';
-    if (cuenta.resumen) {
-        resumenHTML = `
-            <div class="mt-4 p-4 bg-gray-50 rounded-lg">
-                <h5 class="text-sm font-semibold text-gray-700 mb-3 flex items-center">
-                    <span class="material-icons text-sm mr-1">analytics</span>
-                    Resumen de Actividad
-                </h5>
-                <div class="grid grid-cols-2 gap-3 text-xs text-gray-600">
-                    <div class="flex justify-between">
-                        <span>Transacciones:</span>
-                        <span class="font-medium">${cuenta.resumen.cantidadTransacciones || 0}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Total depositado:</span>
-                        <span class="font-medium text-green-600">${formatearSaldo(cuenta.resumen.totalDepositado || 0, tipoMoneda)}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Total extraído:</span>
-                        <span class="font-medium text-red-600">${formatearSaldo(cuenta.resumen.totalExtraido || 0, tipoMoneda)}</span>
-                    </div>
-                    <div class="flex justify-between">
-                        <span>Total transferido:</span>
-                        <span class="font-medium text-blue-600">${formatearSaldo(cuenta.resumen.totalTransferido || 0, tipoMoneda)}</span>
-                    </div>
-                </div>
-                ${cuenta.resumen.tipoUltimaTransaccion ? `
-                    <div class="mt-3 pt-3 border-t border-gray-200">
-                        <p class="text-xs text-gray-600">
-                            <strong>Última:</strong> ${cuenta.resumen.tipoUltimaTransaccion} por 
-                            ${formatearSaldo(cuenta.resumen.montoUltimaTransaccion || 0, tipoMoneda)}
-                        </p>
-                        ${cuenta.resumen.descripcionUltimaTransaccion ? 
-                            `<p class="text-xs text-gray-500 truncate">${cuenta.resumen.descripcionUltimaTransaccion}</p>` 
-                            : ''
-                        }
-                    </div>
-                ` : ''}
-            </div>
-        `;
-    }
-
     return `
         <div class="account-item bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
             <div class="flex items-start justify-between">
@@ -245,10 +330,10 @@ function generarTarjetaCuenta(cuenta, tipoMoneda) {
                     </div>
                 </div>
                 <div class="flex flex-col space-y-2">
-                    <button onclick="editarCuenta(${cuenta.id}, '${cuenta.tipo}', ${cuenta.saldo}, '${tipoMoneda}')" 
+                    <button onclick="mostrarResumen(${cuenta.id})" 
                             class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Editar cuenta">
-                        <span class="material-icons text-sm">edit</span>
+                            title="Ver resumen">
+                        <span class="material-icons text-sm">analytics</span>
                     </button>
                     <button onclick="eliminarCuenta(${cuenta.id})" 
                             class="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
@@ -257,7 +342,6 @@ function generarTarjetaCuenta(cuenta, tipoMoneda) {
                     </button>
                 </div>
             </div>
-            ${resumenHTML}
         </div>
     `;
 }
@@ -318,23 +402,53 @@ function cargarTiposDeCuenta() {
                 select.appendChild(firstOption);
             }
 
+            // Función para obtener icono según el tipo
+            function getAccountIcon(tipo) {
+                const iconos = {
+                    'CAJA_AHORRO': '💰',
+                    'CUENTA_CORRIENTE': '🏦',
+                    'DOLAR': '💵',
+                    'CRIPTO': '₿'
+                };
+                return iconos[tipo] || '🏛️';
+            }
+
             tipos.forEach(tipo => {
                 const option = document.createElement("option");
-                option.value = tipo.nombre;
-                option.textContent = `${getAccountIcon(tipo.nombre)} ${tipo.descripcion}`;
+                option.value = tipo.nombre || tipo;
+                const descripcion = tipo.descripcion || tipo;
+                option.textContent = `${getAccountIcon(option.value)} ${descripcion}`;
                 select.appendChild(option);
             });
         })
         .catch(err => {
             console.error("Error al cargar tipos de cuenta:", err);
+            
+            // Fallback: tipos predefinidos
             const tiposPredefinidos = [
-                { nombre: 'ahorro', descripcion: 'Cuenta de Ahorro' },
-                { nombre: 'corriente', descripcion: 'Cuenta Corriente' },
-                { nombre: 'inversion', descripcion: 'Cuenta de Inversión' },
-                { nombre: 'credito', descripcion: 'Cuenta de Crédito' }
+                { nombre: 'CAJA_AHORRO', descripcion: 'Caja de Ahorro' },
+                { nombre: 'CUENTA_CORRIENTE', descripcion: 'Cuenta Corriente' },
+                { nombre: 'DOLAR', descripcion: 'Cuenta en Dólares' },
+                { nombre: 'CRIPTO', descripcion: 'Cuenta Cripto' }
             ];
             
             const select = document.getElementById("cuenta-tipo");
+            const firstOption = select.querySelector('option[value=""]');
+            select.innerHTML = '';
+            if (firstOption) {
+                select.appendChild(firstOption);
+            }
+
+            function getAccountIcon(tipo) {
+                const iconos = {
+                    'CAJA_AHORRO': '💰',
+                    'CUENTA_CORRIENTE': '🏦',
+                    'DOLAR': '💵',
+                    'CRIPTO': '₿'
+                };
+                return iconos[tipo] || '🏛️';
+            }
+
             tiposPredefinidos.forEach(tipo => {
                 const option = document.createElement("option");
                 option.value = tipo.nombre;
@@ -355,22 +469,6 @@ function mostrarFormulario() {
 
 function ocultarFormulario() {
     document.getElementById('form-section').classList.add('hidden');
-}
-
-function editarCuenta(id, tipo, saldo, moneda = 'peso') {
-    mostrarFormulario();
-    document.getElementById('form-title').textContent = 'Editar Cuenta';
-    document.getElementById('btn-text').textContent = 'Actualizar Cuenta';
-    document.getElementById('cuenta-id').value = id;
-    document.getElementById('cuenta-tipo').value = tipo;
-    document.getElementById('cuenta-saldo').value = saldo;
-    document.getElementById('cuenta-usuario-id').value = usuarioId;
-    
-    // Establecer el tipo de moneda si existe el campo
-    const monedaSelect = document.getElementById('cuenta-moneda');
-    if (monedaSelect) {
-        monedaSelect.value = moneda;
-    }
 }
 
 function eliminarCuenta(id) {
@@ -424,9 +522,9 @@ function logout() {
 // Funciones globales para compatibilidad con el HTML
 window.showCreateForm = mostrarFormulario;
 window.hideForm = ocultarFormulario;
-window.editAccount = editarCuenta;
 window.deleteAccount = eliminarCuenta;
 window.logout = logout;
+window.mostrarResumen = mostrarResumen;
 
 // Inicialización cuando se carga el DOM
 document.addEventListener("DOMContentLoaded", () => {
@@ -441,49 +539,31 @@ document.addEventListener("DOMContentLoaded", () => {
     form.addEventListener("submit", async (e) => {
         e.preventDefault();
         
-        const id = document.getElementById("cuenta-id").value;
         const tipo = document.getElementById("cuenta-tipo").value;
-        const saldo = parseFloat(document.getElementById("cuenta-saldo").value);
-        const usuarioIdForm = document.getElementById("cuenta-usuario-id").value || usuarioId;
-        
-        // Obtener tipo de moneda del formulario
-        const monedaSelect = document.getElementById("cuenta-moneda");
-        const moneda = monedaSelect ? monedaSelect.value : 'peso';
+        const saldo = 0; // Saldo inicial por defecto en 0
+        const usuarioIdForm = usuarioId; // Usar el ID del usuario logueado
 
         if (!tipo) {
             Swal.fire("Atención", "Selecciona un tipo de cuenta", "warning");
             return;
         }
-        
-        if (isNaN(saldo) || saldo < 0) {
-            Swal.fire("Atención", "Ingresa un saldo válido", "warning");
-            return;
-        }
 
         try {
-            const url = id
-                ? `http://localhost:8080/api/cuentas/${id}`
-                : "http://localhost:8080/api/cuentas";
-
-            const method = id ? "PUT" : "POST";
-
-            const res = await fetch(url, {
-                method,
+            const res = await fetch("http://localhost:8080/api/cuentas", {
+                method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ 
                     tipo, 
                     saldo, 
                     usuarioId: parseInt(usuarioIdForm),
-                    moneda: moneda // Incluir el tipo de moneda
+                    moneda: 'peso' // Por defecto crear en pesos
                 }),
             });
-
-            const mensaje = id ? "actualizada" : "creada";
             
             if (res.ok) {
                 Swal.fire({
                     title: 'Éxito',
-                    text: `Cuenta ${mensaje} correctamente`,
+                    text: 'Cuenta creada correctamente',
                     icon: 'success',
                     timer: 2000,
                     showConfirmButton: false
@@ -502,8 +582,6 @@ document.addEventListener("DOMContentLoaded", () => {
         }
     });
 
-    const usuarioIdInput = document.getElementById("cuenta-usuario-id");
-    if (usuarioIdInput) {
-        usuarioIdInput.value = usuarioId;
-    }
+    // No necesitamos más el campo de usuario ID en el formulario
+    // El usuarioId se toma automáticamente del usuario logueado
 });

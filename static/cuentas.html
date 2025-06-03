@@ -26,10 +26,6 @@
             background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
         }
 
-        .card-gradient {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        }
-
         .glass-effect {
             background: rgba(255, 255, 255, 0.95);
             backdrop-filter: blur(20px);
@@ -83,28 +79,6 @@
             width: 100%;
         }
 
-        .account-card {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            position: relative;
-            overflow: hidden;
-        }
-
-        .account-card::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            right: -50%;
-            width: 100%;
-            height: 100%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
-            animation: shimmer 3s ease-in-out infinite;
-        }
-
-        @keyframes shimmer {
-            0%, 100% { transform: rotate(0deg); }
-            50% { transform: rotate(180deg); }
-        }
-
         .form-input {
             transition: all 0.3s ease;
             border: 2px solid transparent;
@@ -148,6 +122,15 @@
             border-left-color: #667eea;
             background: rgba(102, 126, 234, 0.05);
         }
+
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
     </style>
 </head>
 <body class="gradient-bg text-gray-800 min-h-screen">
@@ -186,34 +169,27 @@
 
                 <!-- Navegación -->
                 <nav class="flex flex-wrap gap-1 lg:gap-4">
-                    <a href="dashboard.html"
-                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                    <a href="dashboard.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                         <span class="material-icons text-sm mr-1">dashboard</span>
                         Inicio
                     </a>
-                    <a href="carga.html"
-                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                    <a href="carga.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                         <span class="material-icons text-sm mr-1">add_circle</span>
                         Cargar
                     </a>
-                    <a href="transferencia.html"
-                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                    <a href="transferencia.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                         <span class="material-icons text-sm mr-1">send</span>
                         Transferir
                     </a>
-                    <a href="movimientos.html"
-                       class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                    <a href="movimientos.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                         <span class="material-icons text-sm mr-1">history</span>
                         Movimientos
                     </a>
-                    <a href="cuentas.html"
-                       class="nav-item px-3 py-2 text-sm font-medium text-purple-600 rounded-lg bg-purple-50">
+                    <a href="cuentas.html" class="nav-item px-3 py-2 text-sm font-medium text-purple-600 rounded-lg bg-purple-50">
                         <span class="material-icons text-sm mr-1">account_balance</span>
                         Cuentas
                     </a>
-
-                    <button onclick="logout()"
-                            class="nav-item px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg ml-2">
+                    <button onclick="logout()" class="nav-item px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg ml-2">
                         <span class="material-icons text-sm mr-1">logout</span>
                         Salir
                     </button>
@@ -238,11 +214,13 @@
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div class="glass-effect rounded-2xl p-6 hover-scale">
                 <div class="flex items-center justify-between">
-                    <div>
+                    <div class="w-full">
                         <p class="text-sm text-gray-600 mb-1">Total en cuentas</p>
-                        <p class="text-2xl font-bold text-blue-600">$<span id="totalBalance">0.00</span></p>
+                        <div id="totalBalance" class="space-y-1">
+                            <div class="text-2xl font-bold text-blue-600">$0.00</div>
+                        </div>
                     </div>
-                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                    <div class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center flex-shrink-0">
                         <span class="material-icons text-blue-600">account_balance</span>
                     </div>
                 </div>
@@ -282,8 +260,7 @@
                     <span class="material-icons mr-2 text-blue-600">account_balance</span>
                     Mis Cuentas
                 </h3>
-                <button onclick="showCreateForm()" 
-                        class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-all duration-300 flex items-center">
+                <button onclick="showCreateForm()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-all duration-300 flex items-center">
                     <span class="material-icons mr-2">add</span>
                     Nueva Cuenta
                 </button>
@@ -300,8 +277,7 @@
                 </div>
                 <h4 class="text-lg font-medium text-gray-600 mb-2">No tienes cuentas registradas</h4>
                 <p class="text-gray-500 mb-6">Crea tu primera cuenta para comenzar a gestionar tu dinero</p>
-                <button onclick="showCreateForm()" 
-                        class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
+                <button onclick="showCreateForm()" class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors">
                     <span class="material-icons mr-2">add</span>
                     Crear primera cuenta
                 </button>
@@ -309,74 +285,40 @@
         </div>
     </section>
 
-    <!-- Formulario de crear/editar cuenta -->
+    <!-- Formulario de crear cuenta -->
     <section class="slide-in">
         <div id="form-section" class="glass-effect rounded-2xl p-6 hidden">
             <div class="flex items-center justify-between mb-6">
                 <h3 class="text-xl font-bold text-gray-800 flex items-center">
-                    <span class="material-icons mr-2 text-purple-600">edit</span>
+                    <span class="material-icons mr-2 text-purple-600">add_circle</span>
                     <span id="form-title">Crear Nueva Cuenta</span>
                 </h3>
-                <button onclick="hideForm()" 
-                        class="text-gray-500 hover:text-gray-700 transition-colors">
+                <button onclick="hideForm()" class="text-gray-500 hover:text-gray-700 transition-colors">
                     <span class="material-icons">close</span>
                 </button>
             </div>
 
             <form id="cuenta-form" class="space-y-6">
-                <input type="hidden" id="cuenta-id" />
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div>
-                        <label for="cuenta-saldo" class="block text-sm font-medium text-gray-700 mb-2">
-                            <span class="material-icons text-sm mr-1">account_balance_wallet</span>
-                            Saldo inicial
-                        </label>
-                        <input type="number" 
-                               id="cuenta-saldo" 
-                               placeholder="0.00" 
-                               class="form-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none" 
-                               required min="0" step="0.01" />
-                    </div>
-
-                    <div>
-                        <label for="cuenta-tipo" class="block text-sm font-medium text-gray-700 mb-2">
-                            <span class="material-icons text-sm mr-1">category</span>
-                            Tipo de cuenta
-                        </label>
-                        <select id="cuenta-tipo" 
-                                class="form-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none" 
-                                required>
-                            <option value="">Selecciona un tipo de cuenta</option>
-                            <option value="ahorro">💰 Cuenta de Ahorro</option>
-                            <option value="corriente">🏦 Cuenta Corriente</option>
-                            <option value="inversion">📈 Cuenta de Inversión</option>
-                            <option value="credito">💳 Cuenta de Crédito</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label for="cuenta-usuario-id" class="block text-sm font-medium text-gray-700 mb-2">
-                        <span class="material-icons text-sm mr-1">person</span>
-                        ID del usuario
+                <div class="w-full">
+                    <label for="cuenta-tipo" class="block text-sm font-medium text-gray-700 mb-2">
+                        <span class="material-icons text-sm mr-1">category</span>
+                        Tipo de cuenta
                     </label>
-                    <input type="number" 
-                           id="cuenta-usuario-id" 
-                           placeholder="Ingresa el ID del usuario" 
-                           class="form-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none" 
-                           required />
+                    <select id="cuenta-tipo" class="form-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none" required>
+                        <option value="">Selecciona un tipo de cuenta</option>
+                        <option value="ahorro">💰 Cuenta de Ahorro</option>
+                        <option value="corriente">🏦 Cuenta Corriente</option>
+                        <option value="inversion">📈 Cuenta de Inversión</option>
+                        <option value="credito">💳 Cuenta de Crédito</option>
+                    </select>
                 </div>
 
                 <div class="flex flex-col sm:flex-row gap-4 pt-4">
-                    <button type="submit" 
-                            class="btn-primary flex-1 text-white px-6 py-4 rounded-xl font-medium hover:scale-105 transition-all duration-300 relative z-10 flex items-center justify-center">
+                    <button type="submit" class="btn-primary flex-1 text-white px-6 py-4 rounded-xl font-medium hover:scale-105 transition-all duration-300 relative z-10 flex items-center justify-center">
                         <span class="material-icons mr-2">save</span>
                         <span id="btn-text">Crear Cuenta</span>
                     </button>
-                    <button type="button" 
-                            onclick="hideForm()" 
-                            class="flex-1 bg-gray-200 text-gray-700 px-6 py-4 rounded-xl font-medium hover:bg-gray-300 transition-colors flex items-center justify-center">
+                    <button type="button" onclick="hideForm()" class="flex-1 bg-gray-200 text-gray-700 px-6 py-4 rounded-xl font-medium hover:bg-gray-300 transition-colors flex items-center justify-center">
                         <span class="material-icons mr-2">cancel</span>
                         Cancelar
                     </button>
@@ -426,20 +368,139 @@
         document.getElementById('form-title').textContent = 'Crear Nueva Cuenta';
         document.getElementById('btn-text').textContent = 'Crear Cuenta';
         document.getElementById('cuenta-form').reset();
-        document.getElementById('cuenta-id').value = '';
     }
 
     function hideForm() {
         document.getElementById('form-section').classList.add('hidden');
     }
 
-    function editAccount(id) {
-        // Función para editar cuenta (implementar según tu lógica)
-        showCreateForm();
-        document.getElementById('form-title').textContent = 'Editar Cuenta';
-        document.getElementById('btn-text').textContent = 'Actualizar Cuenta';
-        document.getElementById('cuenta-id').value = id;
-        // Cargar datos de la cuenta para edición
+    // Función para mostrar el resumen de una cuenta
+    function mostrarResumen(cuentaId) {
+        Swal.fire({
+            title: 'Cargando resumen...',
+            html: '<div class="pulse-animation">Obteniendo datos de la cuenta</div>',
+            allowOutsideClick: false,
+            showConfirmButton: false,
+            willOpen: () => {
+                Swal.showLoading();
+            }
+        });
+
+        fetch(`http://localhost:8080/api/cuentas/${cuentaId}/resumen`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(resumen => {
+                mostrarModalResumen(resumen, cuentaId);
+            })
+            .catch(error => {
+                console.error('Error al obtener el resumen:', error);
+                Swal.fire({
+                    title: 'Error',
+                    text: 'No se pudo obtener el resumen de la cuenta. Por favor, intenta nuevamente.',
+                    icon: 'error',
+                    confirmButtonText: 'Entendido'
+                });
+            });
+    }
+
+    // Función para mostrar el modal con el resumen
+    function mostrarModalResumen(resumen, cuentaId) {
+        const htmlResumen = `
+            <div class="text-left">
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4">
+                    <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
+                        <span class="material-icons mr-2 text-blue-600">analytics</span>
+                        Resumen de la Cuenta #${cuentaId}
+                    </h3>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-green-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <span class="material-icons text-green-600 mr-2">trending_up</span>
+                            <h4 class="font-semibold text-green-800">Ingresos</h4>
+                        </div>
+                        <p class="text-2xl font-bold text-green-600">$${(resumen.totalDepositado || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                        <p class="text-sm text-green-700">Total depositado</p>
+                    </div>
+                    
+                    <div class="bg-red-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <span class="material-icons text-red-600 mr-2">trending_down</span>
+                            <h4 class="font-semibold text-red-800">Egresos</h4>
+                        </div>
+                        <p class="text-2xl font-bold text-red-600">$${(resumen.totalExtraido || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                        <p class="text-sm text-red-700">Total extraído</p>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <span class="material-icons text-blue-600 mr-2">swap_horiz</span>
+                            <h4 class="font-semibold text-blue-800">Transferencias</h4>
+                        </div>
+                        <p class="text-2xl font-bold text-blue-600">$${(resumen.totalTransferido || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                        <p class="text-sm text-blue-700">Total transferido</p>
+                    </div>
+                    
+                    <div class="bg-purple-50 p-4 rounded-lg">
+                        <div class="flex items-center mb-2">
+                            <span class="material-icons text-purple-600 mr-2">receipt</span>
+                            <h4 class="font-semibold text-purple-800">Transacciones</h4>
+                        </div>
+                        <p class="text-2xl font-bold text-purple-600">${resumen.cantidadTransacciones || 0}</p>
+                        <p class="text-sm text-purple-700">Total de operaciones</p>
+                    </div>
+                </div>
+                
+                ${resumen.tipoUltimaTransaccion ? `
+                    <div class="bg-gray-50 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
+                            <span class="material-icons mr-2 text-gray-600">history</span>
+                            Última Transacción
+                        </h4>
+                        <div class="space-y-2">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Tipo:</span>
+                                <span class="font-medium capitalize">${resumen.tipoUltimaTransaccion}</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Monto:</span>
+                                <span class="font-medium">$${(resumen.montoUltimaTransaccion || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
+                            </div>
+                            ${resumen.descripcionUltimaTransaccion ? `
+                                <div class="flex justify-between">
+                                    <span class="text-gray-600">Descripción:</span>
+                                    <span class="font-medium">${resumen.descripcionUltimaTransaccion}</span>
+                                </div>
+                            ` : ''}
+                        </div>
+                    </div>
+                ` : `
+                    <div class="bg-gray-50 p-4 rounded-lg text-center">
+                        <span class="material-icons text-gray-400 text-3xl mb-2">inbox</span>
+                        <p class="text-gray-600">No hay transacciones registradas</p>
+                    </div>
+                `}
+            </div>
+        `;
+
+        Swal.fire({
+            html: htmlResumen,
+            width: '600px',
+            showCloseButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: '#667eea',
+            customClass: {
+                popup: 'rounded-xl'
+            }
+        });
     }
 
     function deleteAccount(id) {
@@ -454,7 +515,6 @@
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                // Implementar lógica de eliminación
                 Swal.fire('Eliminado', 'La cuenta ha sido eliminada correctamente', 'success');
             }
         });
@@ -477,11 +537,37 @@
         });
     }
 
-    // Actualizar hora cada segundo
-    updateTime();
-    setInterval(updateTime, 1000);
+    // Función para actualizar las estadísticas de balance separadas por moneda
+    function updateBalanceStats(cuentas) {
+        const balancePorMoneda = {
+            peso: 0,
+            dolar_comun: 0,
+            dolar_cripto: 0
+        };
 
-    // Ejemplo de cuentas para mostrar
+        cuentas.forEach(cuenta => {
+            const moneda = cuenta.moneda || 'peso';
+            balancePorMoneda[moneda] += parseFloat(cuenta.saldo || 0);
+        });
+
+        const totalBalanceEl = document.getElementById('totalBalance');
+        let htmlBalance = '';
+
+        htmlBalance += `<div class="text-2xl font-bold text-blue-600">$${balancePorMoneda.peso.toLocaleString('es-AR', {minimumFractionDigits: 2})}</div>`;
+        
+        if (balancePorMoneda.dolar_comun > 0) {
+            htmlBalance += `<div class="text-lg font-semibold text-green-600">US$${balancePorMoneda.dolar_comun.toLocaleString('es-AR', {minimumFractionDigits: 2})}</div>`;
+        }
+        
+        if (balancePorMoneda.dolar_cripto > 0) {
+            htmlBalance += `<div class="text-lg font-semibold text-orange-600">₿${balancePorMoneda.dolar_cripto.toLocaleString('es-AR', {minimumFractionDigits: 8})}</div>`;
+        }
+
+        totalBalanceEl.innerHTML = htmlBalance;
+        document.getElementById('activeAccounts').textContent = cuentas.length;
+    }
+
+    // Función para cargar cuentas (ejemplo)
     function loadAccounts() {
         const cuentas = [
             {
@@ -491,7 +577,8 @@
                 usuario: 'Melina Rodriguez',
                 numero: '**** 4567',
                 icono: '💰',
-                color: 'blue'
+                color: 'blue',
+                moneda: 'peso'
             },
             {
                 id: 2,
@@ -500,7 +587,18 @@
                 usuario: 'Melina Rodriguez',
                 numero: '**** 8901',
                 icono: '🏦',
-                color: 'green'
+                color: 'green',
+                moneda: 'peso'
+            },
+            {
+                id: 3,
+                tipo: 'ahorro',
+                saldo: 5500.00,
+                usuario: 'Melina Rodriguez',
+                numero: '**** 1234',
+                icono: '💵',
+                color: 'green',
+                moneda: 'dolar_comun'
             }
         ];
 
@@ -523,17 +621,18 @@
                             <h4 class="text-lg font-semibold text-gray-800 capitalize">${cuenta.tipo}</h4>
                             <p class="text-sm text-gray-500">${cuenta.numero}</p>
                             <p class="text-xs text-gray-400">${cuenta.usuario}</p>
+                            ${cuenta.moneda !== 'peso' ? `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">${cuenta.moneda === 'dolar_comun' ? 'USD' : 'Cripto'}</span>` : ''}
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="text-2xl font-bold text-${cuenta.color}-600">$${cuenta.saldo.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                        <p class="text-2xl font-bold text-${cuenta.color}-600">
+                            ${cuenta.moneda === 'dolar_comun' ? 'US$' : cuenta.moneda === 'dolar_cripto' ? '₿' : '$'}${cuenta.saldo.toLocaleString('es-AR', {minimumFractionDigits: 2})}
+                        </p>
                         <div class="flex space-x-2 mt-2">
-                            <button onclick="editAccount(${cuenta.id})" 
-                                    class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors">
-                                <span class="material-icons text-sm">edit</span>
+                            <button onclick="mostrarResumen(${cuenta.id})" class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors" title="Ver resumen">
+                                <span class="material-icons text-sm">analytics</span>
                             </button>
-                            <button onclick="deleteAccount(${cuenta.id})" 
-                                    class="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors">
+                            <button onclick="deleteAccount(${cuenta.id})" class="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar cuenta">
                                 <span class="material-icons text-sm">delete</span>
                             </button>
                         </div>
@@ -542,40 +641,44 @@
             </div>
         `).join('');
 
-        // Actualizar estadísticas
-        const totalBalance = cuentas.reduce((sum, cuenta) => sum + cuenta.saldo, 0);
-        document.getElementById('totalBalance').textContent = totalBalance.toLocaleString('es-AR', {minimumFractionDigits: 2});
-        document.getElementById('activeAccounts').textContent = cuentas.length;
+        updateBalanceStats(cuentas);
     }
 
-    // Cargar cuentas al inicio
-    loadAccounts();
-
-    // Script para el formulario (integrar con tu cuenta.js existente)
+    // Script para el formulario
     document.getElementById('cuenta-form').addEventListener('submit', function(e) {
         e.preventDefault();
         
+        const tipo = document.getElementById('cuenta-tipo').value;
+        
+        if (!tipo) {
+            Swal.fire("Atención", "Selecciona un tipo de cuenta", "warning");
+            return;
+        }
+
         const formData = {
-            id: document.getElementById('cuenta-id').value,
-            saldo: document.getElementById('cuenta-saldo').value,
-            tipo: document.getElementById('cuenta-tipo').value,
-            usuarioId: document.getElementById('cuenta-usuario-id').value
+            tipo: tipo,
+            saldo: 0,
+            usuarioId: 2
         };
 
-        // Aquí integrar con tu lógica existente de cuenta.js
         console.log('Datos del formulario:', formData);
         
         Swal.fire({
             title: 'Éxito',
-            text: formData.id ? 'Cuenta actualizada correctamente' : 'Cuenta creada correctamente',
+            text: 'Cuenta creada correctamente',
             icon: 'success',
             timer: 2000,
             showConfirmButton: false
         }).then(() => {
             hideForm();
-            loadAccounts(); // Recargar la lista
+            loadAccounts();
         });
     });
+
+    // Inicialización
+    updateTime();
+    setInterval(updateTime, 1000);
+    loadAccounts();
 </script>
 
 <!-- Incluir tu script cuenta.js existente -->
