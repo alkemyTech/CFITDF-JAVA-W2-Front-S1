@@ -32,32 +32,10 @@
         background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
       }
 
-      .card-gradient {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      }
-
       .glass-effect {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
         border: 1px solid rgba(255, 255, 255, 0.2);
-      }
-
-      .floating-animation {
-        animation: float 6s ease-in-out infinite;
-      }
-
-      @keyframes float {
-        0%,
-        100% {
-          transform: translateY(0px);
-        }
-        50% {
-          transform: translateY(-5px);
-        }
-      }
-
-      .pulse-animation {
-        animation: pulse 2s infinite;
       }
 
       .slide-in {
@@ -73,14 +51,6 @@
           opacity: 1;
           transform: translateY(0);
         }
-      }
-
-      .hover-scale {
-        transition: all 0.3s ease;
-      }
-
-      .hover-scale:hover {
-        transform: scale(1.02);
       }
 
       .nav-item {
@@ -102,37 +72,6 @@
 
       .nav-item:hover:after {
         width: 100%;
-      }
-
-      .balance-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .balance-card::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(
-          circle,
-          rgba(255, 255, 255, 0.1) 0%,
-          transparent 70%
-        );
-        animation: shimmer 3s ease-in-out infinite;
-      }
-
-      @keyframes shimmer {
-        0%,
-        100% {
-          transform: rotate(0deg);
-        }
-        50% {
-          transform: rotate(180deg);
-        }
       }
 
       .action-btn {
@@ -157,16 +96,6 @@
       .action-btn:hover:before {
         width: 300px;
         height: 300px;
-      }
-
-      .movement-item {
-        transition: all 0.3s ease;
-        border-left: 4px solid transparent;
-      }
-
-      .movement-item:hover {
-        border-left-color: #667eea;
-        background: rgba(102, 126, 234, 0.05);
       }
 
       #eliminarTarjeta {
@@ -234,6 +163,9 @@
               <div class="text-2xl font-semibold tracking-wide">
                 <span id="numero-tarjeta">**** **** **** ****</span>
               </div>
+              <div class="text-2xl font-semibold tracking-wide">
+                <span id="nombre-usuario"></span>
+              </div>
             </div>
 
             <!-- Parte inferior -->
@@ -269,18 +201,44 @@
             style="cursor: pointer"
           >
             <div class="flex items-center justify-between">
-              <div>
-                <p
-                  class="text-lg font-semibold text-gray-700"
-                  id="mostrarTarjeta"
-                >
-                  Mostrar datos
-                </p>
-              </div>
               <div
                 class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center"
               >
                 <span class="material-icons text-green-600">visibility</span>
+              </div>
+              <div>
+                <p
+                  class="text-lg font-semibold text-gray-700 ml-3"
+                  id="mostrarTarjeta"
+                >
+                  Mostrar
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="glass-effect rounded-2xl p-6 hover-scale max-w-[200px] mx-auto"
+            style="cursor: pointer"
+          >
+            <div
+              class="flex items-center justify-between"
+              onclick="mostrarToggleCongelarTarjeta()"
+              id="congelarTarjeta"
+            >
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center"
+              >
+                <span
+                  class="material-icons text-blue-600"
+                  id="estadoTarjetaIcono"
+                ></span>
+              </div>
+              <div>
+                <p
+                  class="text-lg font-semibold text-gray-700 ml-3"
+                  id="estadoTarjetaTexto"
+                ></p>
               </div>
             </div>
           </div>
@@ -293,15 +251,13 @@
               onclick="eliminarTarjeta()"
               id="eliminarTarjeta"
             >
-              <div>
-                <p class="text-lg font-semibold text-gray-700">
-                  Eliminar tarjeta
-                </p>
-              </div>
               <div
                 class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center"
               >
                 <span class="material-icons text-red-600">delete</span>
+              </div>
+              <div>
+                <p class="text-lg font-semibold text-gray-700 ml-3">Eliminar</p>
               </div>
             </div>
           </div>

@@ -89,11 +89,6 @@
         updateCurrentTime();
         setInterval(updateCurrentTime, 1000);
 
-        // Animar el saldo al cargar
-        setTimeout(() => {
-            animateNumber('saldo', 125750.50);
-        }, 500);
-
         // Mostrar notificación de bienvenida
         setTimeout(() => {
             Swal.fire({
@@ -124,6 +119,7 @@
         usuarioDto: null,
         cuentaDtoId: null,
         saldo: null,
+        congelada: null,
     }
 
     const deleteTarjeta = async () => {
@@ -145,6 +141,88 @@
 	   }
     }
 
+    const mostrarToggleCongelarTarjeta = () => {
+        if(tarjetaCargada.congelada){
+Swal.fire({
+    title: '¿Descongelar tarjeta?',
+    html: `
+        <div class="text-left">
+            <p>Estás a punto de reactivar la tarjeta terminada en <b>${tarjetaCargada.numero.slice(8, 12)}</b>.</p>
+            <ul class="list-disc pl-5 mt-2 text-green-600 text-sm">
+                <li>Podrás realizar compras online y presenciales nuevamente</li>
+                <li>Puedes volver a congelarla cuando lo necesites</li>
+            </ul>
+        </div>
+    `,
+    icon: 'question',
+    showCancelButton: true,
+    confirmButtonColor: '#28a745', // Verde en lugar de azul
+    cancelButtonColor: '#d33',
+    confirmButtonText: 'Sí, descongelar',
+    cancelButtonText: 'Cancelar',
+}).then((result) => {
+        if(result.isConfirmed) {
+            toggleCongelarTarjeta();
+        }
+        });
+        }else{
+        Swal.fire({
+        title: '¿Congelar tarjeta?',
+        html: `
+            <div class="text-left">
+                <p>Estás a punto de congelar la tarjeta terminada en <b>${tarjetaCargada.numero.slice(8, 12)}</b>.</p>
+                <ul class="list-disc pl-5 mt-2 text-red-500 text-sm">
+                    <li>No podrás realizar compras online o presenciales</li>
+                    <li>Puedes descongelarla en cualquier momento</li>
+                </ul>
+            </div>
+        `,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3085d6',
+        cancelButtonColor: '#d33',
+        confirmButtonText: 'Sí, congelar',
+        cancelButtonText: 'Cancelar',
+        }).then((result) => {
+        if(result.isConfirmed) {
+            toggleCongelarTarjeta();
+        }
+        });
+        }
+    }
+
+    const toggleCongelarTarjeta = async () => {
+        try{
+            const response = await fetch(`http://localhost:8080/api/tarjetas/${tarjetaId}/toggle-congelar`, {
+                method: 'PATCH',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            });
+        if(response.ok) {
+                Swal.fire({
+                    icon: 'success',
+                    title: '¡Tarjeta modificada!',
+                    text: 'El estado de la tarjeta ha sido modificado exitosamente',
+                    timer: 2000
+                }).then(() => {
+  window.location.reload();
+});
+	       } else {
+	           const errorData = await response.json();
+                throw new Error(errorData.message);
+	       }
+	   } catch (error) {
+	        Swal.fire({
+                icon: 'error',
+                title: 'Error',
+                text: error.message,
+                footer: 'Intenta nuevamente o contacta a soporte'
+            });
+            console.error('Error:', error);
+	   }
+    }
+
     const obtenerTarjeta = async () => {
         try{
             const response = await fetch(`http://localhost:8080/api/tarjetas/${tarjetaId}`);
@@ -155,6 +233,10 @@
                 tarjetaCargada.tipo = datosTarjeta.tipo;
                 tarjetaCargada.fechaExpiracion = datosTarjeta.fechaExpiracion;
                 tarjetaCargada.cuentaDtoId = datosTarjeta.cuentaDtoId;
+                tarjetaCargada.congelada = datosTarjeta.congelada;
+                document.getElementById('nombre-usuario').textContent = `${datosTarjeta.usuarioDTO.nombre.toUpperCase()} ${datosTarjeta.usuarioDTO.apellido.toUpperCase()}`
+                document.getElementById('estadoTarjetaTexto').textContent = datosTarjeta.congelada ? "Descongelar" : "Congelar"
+                document.getElementById('estadoTarjetaIcono').textContent = datosTarjeta.congelada ? "play_arrow" : "pause"
                 const responseCuenta = await fetch(`http://localhost:8080/api/cuentas/${tarjetaCargada.cuentaDtoId}`);
                 let datosCuenta = await responseCuenta.json();
                 tarjetaCargada.saldo = datosCuenta.saldo;
@@ -171,7 +253,7 @@
         document.getElementById("numero-tarjeta").innerHTML = `${tarjetaCargada.numero.slice(0, 4)} ${tarjetaCargada.numero.slice(4, 8)} ${tarjetaCargada.numero.slice(8, -1)}`;
         document.getElementById("vencimiento-tarjeta").innerHTML = `${tarjetaCargada.fechaExpiracion.slice(5, 7)}/${tarjetaCargada.fechaExpiracion.slice(0, 4)}`;
         document.getElementById("saldo-tarjeta").innerHTML = `$${tarjetaCargada.saldo}`;
-    }
+    }   
 
     const ocultarDatos = () => {
         document.getElementById("tipo-tarjeta").innerHTML = `TARJETA ****`;  
