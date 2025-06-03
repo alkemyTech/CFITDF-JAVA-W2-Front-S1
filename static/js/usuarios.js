@@ -42,9 +42,7 @@ function mostrarUsuarios(usuarios) {
             <td class="px-6 py-4">${usuario.nombre} ${usuario.apellido}</td>
             <td class="px-6 py-4">${usuario.email}</td>
             <td class="px-6 py-4">${new Date(usuario.fechaRegistro).toLocaleDateString()}</td>
-            <td class="px-6 py-4">
-                ${usuario.enabled ? 'Activo' : 'Inactivo'}
-            </td>
+            <td class="px-6 py-4">${usuario.enabled ? 'Activo' : 'Inactivo'}</td>
             <td class="px-6 py-4">
                 <button onclick="verUsuario(${usuario.id})" class="text-blue-600 hover:text-blue-800">Ver</button>
                 <button onclick="modificarUsuario(${usuario.id})" class="text-green-600 hover:text-green-800 ml-2">Modificar</button>
@@ -73,14 +71,11 @@ function mostrarUsuarios(usuarios) {
 function verUsuario(id) {
     // Mostrar el modal
     document.getElementById('modalDetalles').classList.remove('hidden');
-
     // Cargar detalles del usuario
     cargarDetallesUsuario(id);
 }
 
 async function cargarDetallesUsuario(id) {
-    const API_URL = 'http://localhost:8080/api/usuario';
-
     try {
         const response = await fetch(`${API_URL}/${id}`);
         if (!response.ok) throw new Error('Error al cargar los detalles del usuario');
@@ -98,6 +93,11 @@ function mostrarDetalles(usuario) {
     usuarioDetalles.innerHTML = `
         <h2 class="text-2xl font-bold mb-4">${usuario.nombre} ${usuario.apellido}</h2>
         <p><strong>Email:</strong> ${usuario.email}</p>
+        <p><strong>DNI:</strong> ${usuario.dni}</p>
+        <p><strong>Teléfono:</strong> ${usuario.telefono}</p>
+        <p><strong>Provincia:</strong> ${usuario.provincia}</p>
+        <p><strong>Ciudad:</strong> ${usuario.ciudad}</p>
+        <p><strong>Fecha de nacimiento:</strong> ${new Date(usuario.fechaNacimiento).toLocaleDateString()}</p>
         <p><strong>Fecha de Registro:</strong> ${new Date(usuario.fechaRegistro).toLocaleDateString()}</p>
         <p><strong>Estado:</strong> ${usuario.enabled ? 'Activo' : 'Inactivo'}</p>
     `;
@@ -110,13 +110,8 @@ function cerrarModal() {
 
 function modificarUsuario(id) {
     // Lógica para modificar el usuario
-    // Por ejemplo, redirigir a una página de edición
     window.location.href = `modificarUsuario.html?id=${id}`;
 }
-
-
-
-
 
 // Función para mostrar error
 function mostrarError() {
@@ -163,8 +158,12 @@ async function buscarUsuarios() {
 
     try {
         let url = `${API_URL}/listado?nombre=${busqueda}`;
-        if (estado) {
-            url += `&estado=${estado}`;
+        
+        // Ajustar el valor del estado según la selección
+        if (estado === 'activo') {
+            url += `&estado=true`; // Para usuarios activos
+        } else if (estado === 'inactivo') {
+            url += `&estado=false`; // Para usuarios inactivos
         }
 
         const response = await fetch(url);
@@ -186,3 +185,5 @@ document.getElementById('filtroEstado').addEventListener('change', buscarUsuario
 
 // Cargar usuarios al inicio
 window.onload = cargarUsuarios;
+
+
