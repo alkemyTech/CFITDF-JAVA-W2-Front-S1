@@ -164,9 +164,8 @@
               </div>
               <div>
                 <p class="text-sm font-medium text-gray-700">
-                  ¡Hola, <span
-                    class="font-bold text-gray-900">Melina</span>!
-                  👋
+                    ¡Hola, <span id="userFullName" class="font-bold text-gray-900"></span>! 👋
+                </p>
                 </p>
                 <p class="text-xs text-gray-500"
                   id="currentTime"></p>
@@ -346,5 +345,21 @@
         </footer>
 
         <script src="./js/pago.js"></script>
+        <script>
+          document.addEventListener('DOMContentLoaded', function() {
+            updateTime();
+            setInterval(updateTime, 60000); // Actualizar cada minuto
+
+            // Obtener el nombre y apellido del usuario del localStorage
+            const nombreUsuario = localStorage.getItem('nombreUsuario');
+            const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+            
+            if (nombreUsuario && apellidoUsuario) {
+                document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
+            } else {
+                document.getElementById('userFullName').textContent = 'Usuario'; // Nombre por defecto si no hay
+            }
+        });
+        </script>
       </body>
     </html>
