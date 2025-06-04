@@ -9,7 +9,7 @@ let tarjetaPorCrear = {
 }
 
 const cargarCuentas = async () => {
-    let userId = localStorage.getItem("userId");
+    let userId = localStorage.getItem('usuarioId');
     try{
         const response = await fetch(`http://localhost:8080/api/cuentas/usuario/${userId}`);
         if(!response.ok){
@@ -47,25 +47,37 @@ const solicitarTarjeta = (event) => {
     const cuentaId = document.getElementById("cuentaAsociada").value;
     const tipoSelect = document.getElementById("tipo").value;
     const esVirtualCheck = document.getElementById('esVirtual').checked;
-    let textoCartel = `Tu tarjeta sera creada y solicitada al instante. Asegurate de que los datos ingresados sean correctos.
-        Tarjeta tipo: ${tipoSelect}, N° de Cuenta ${cuentaId}`;
+    let textoCartel = `
+    <div style="text-align: left; color: #4b5563; line-height: 1.6;">
+        <p style="margin-bottom: 10px;">✅ Tu tarjeta será creada y solicitada al instante.</p>
+        <p style="margin-bottom: 5px; font-weight: 500;">🔹 <span style="color: #1e40af;">Tipo:</span> ${tipoSelect}</p>
+        <p style="margin-bottom: 5px; font-weight: 500;">🔹 <span style="color: #1e40af;">N° de Cuenta:</span> ${cuentaId}</p>
+`;
     if(esVirtualCheck){
         direccionInput.removeAttribute('required');
-        textoCartel += `, Virtual.`;
+        textoCartel += `<p style="margin-bottom: 5px; font-weight: 500;">🔹 <span style="color: #1e40af;">Modalidad:</span> <span style="color: #10b981; font-weight: 600;">Virtual</span></p>`;
     }else {
         const direccionInput = document.getElementById('direccionInput').value;
-        textoCartel += `, Direccion de envio: ${direccionInput}`;
+    textoCartel += `<p style="margin-bottom: 5px; font-weight: 500;">🔹 <span style="color: #1e40af;">Dirección de envío:</span> ${direccionInput}</p>`;
     }
+    textoCartel += `</div>`;
     Swal.fire({
-        title: "Estas seguro?",
-        text: textoCartel,
-        icon: "warning",
-        showCancelButton: true,
-        confirmButtonColor: "#3085d6",
-        cancelButtonColor: "#d33",
-        cancelButtonText: "Cancelar",
-        confirmButtonText: "Si, solicitar!"
-    }).then((result) => {
+        title: '<span style="font-size: 1.5rem; color: #1e40af;">¿Estás seguro?</span>',
+    html: textoCartel,
+    icon: "question",
+    showCancelButton: true,
+    confirmButtonColor: "#2563eb",
+    cancelButtonColor: "#d33",
+    cancelButtonText: '<span style="font-weight: 500">Cancelar</span>',
+    confirmButtonText: '<span style="font-weight: 500">Sí, solicitar</span>',
+    background: '#f9fafb',
+    showClass: {
+        popup: 'animate__animated animate__fadeInDown'
+    },
+    hideClass: {
+        popup: 'animate__animated animate__fadeOutUp'
+    }
+}).then((result) => {
         if (result.isConfirmed) {
             crearTarjeta(cuentaId, esVirtualCheck, tipoSelect)   
         }

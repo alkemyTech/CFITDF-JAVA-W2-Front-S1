@@ -1,5 +1,7 @@
 let currentFilter = 'all';
+const userId = localStorage.getItem('usuarioId');
 document.addEventListener('DOMContentLoaded', function() {
+
     updateCurrentTime();
     mostrarTarjetas();
 
@@ -72,6 +74,8 @@ const mostrarTarjetas = async () => {
                 // Crear contenedor principal para cada tarjeta
                 const tarjetaContainer = document.createElement("div");
                 tarjetaContainer.className = "movement-item flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-all duration-300 hover:border-l-4 hover:border-blue-500";
+                tarjetaContainer.dataset.tipo = tarjeta.tipo.toLowerCase(); // IMPORTANTE para los filtros
+                tarjetaContainer.classList.add('tarjeta-item'); // Clase necesaria para filtros
                 
                 // Crear contenedor interno para los detalles
                 const detalleContainer = document.createElement("div");
@@ -100,26 +104,23 @@ const mostrarTarjetas = async () => {
                 // Botón Ver detalle
                 const boton = document.createElement("button");
                 boton.textContent = "Ver detalle";
-                boton.className = "text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center";
-                boton.dataset.id = tarjeta.id; 
-                boton.dataset.tipo = tarjeta.tipo;
-                
-                tarjetaContainer.dataset.tipo = tarjeta.tipo.toLowerCase();
-                tarjetaContainer.classList.add('tarjeta-item');
+                boton.className = "text-blue-600 hover:text-blue-700 text-sm font-medium";
+                boton.dataset.id = tarjeta.id;
 
                 boton.addEventListener("click", () => {
                     localStorage.setItem("tarjetaId", tarjeta.id);
                     window.location.href = "detalletarjeta.html";
                 });
                 
+                // Construir estructura
                 textoContainer.appendChild(tipo);
                 textoContainer.appendChild(numero);
-                textoContainer.appendChild(boton);
-                
                 detalleContainer.appendChild(icon);
                 detalleContainer.appendChild(textoContainer);
                 
                 tarjetaContainer.appendChild(detalleContainer);
+                tarjetaContainer.appendChild(boton);
+                
                 contenedorPadre.appendChild(tarjetaContainer);
             });
         }
@@ -129,10 +130,9 @@ const mostrarTarjetas = async () => {
 }
 
     const solicitarTarjeta = () => {
-        localStorage.setItem("userId", 3); //despues cambiar por usuario dinamico
+        localStorage.setItem("userId", userId); //despues cambiar por usuario dinamico
         window.location.href = "nuevatarjeta.html";
     }
-
 
 
  function filtrarTarjetas(type) {
@@ -141,7 +141,7 @@ const mostrarTarjetas = async () => {
         btn.classList.remove('bg-blue-100', 'text-blue-700');
         btn.classList.add('bg-gray-100', 'text-gray-700');
     });
-
+    console.log(userId);
     const activeBtn = document.getElementById(`filter-${type}`);
     activeBtn.classList.add('active', 'bg-blue-100', 'text-blue-700');
     activeBtn.classList.remove('bg-gray-100', 'text-gray-700');
