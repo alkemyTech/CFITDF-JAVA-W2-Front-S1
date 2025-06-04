@@ -67,6 +67,16 @@
                 timerProgressBar: true
             });
         }, 1000);
+
+        // Obtener el nombre y apellido del usuario del localStorage
+            const nombreUsuario = localStorage.getItem('nombreUsuario');
+            const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+            
+            if (nombreUsuario && apellidoUsuario) {
+                document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
+            } else {
+                document.getElementById('userFullName').textContent = 'Usuario'; // Nombre por defecto si no hay
+            }
     });
 
     // Actualizar último update cada minuto

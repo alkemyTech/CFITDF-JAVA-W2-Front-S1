@@ -2,6 +2,16 @@ document.addEventListener("DOMContentLoaded", () => {
     const form = document.getElementById("pagoForm");
     const cuentaSelect = document.getElementById("cuentaId");
 
+    // Obtener el nombre y apellido del usuario del localStorage
+            const nombreUsuario = localStorage.getItem('nombreUsuario');
+            const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+            
+            if (nombreUsuario && apellidoUsuario) {
+                document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
+            } else {
+                document.getElementById('userFullName').textContent = 'Usuario'; // Nombre por defecto si no hay
+            }
+
     // Simulación: obtener cuentas desde la API (ajustá URL según tu backend)
     fetch("/api/cuentas") // Ajustá esta URL
         .then(res => res.json())
@@ -17,7 +27,6 @@ document.addEventListener("DOMContentLoaded", () => {
             console.error("Error al obtener cuentas:", err);
             Swal.fire("Error", "No se pudieron cargar las cuentas", "error");
         });
-
     // Envío del formulario
     form.addEventListener("submit", e => {
         e.preventDefault();

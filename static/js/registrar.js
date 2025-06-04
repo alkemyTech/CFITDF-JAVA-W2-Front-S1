@@ -45,9 +45,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
 
-            // Combinar dirección y número
-            const fullAddress = `${direccion} ${numero}`;
-
             // Crea el objeto de datos que se enviará
             const userData = {
                 nombre: nombre,
@@ -58,7 +55,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 fechaNacimiento: fechaNacimiento,
                 provincia: provincia, // Usar el nombre de la provincia
                 ciudad: municipio, // Usar el nombre del municipio
-                direccion: fullAddress, // Usar la dirección combinada
+                direccion: direccion,
+                numeroD: numero,
                 password: password
             };
 
