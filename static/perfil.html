@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Mi Perfil - AlkyWallet</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f3f4f6; /* Color de fondo neutro */
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-info {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .profile-card {
+            transition: transform 0.3s ease;
+        }
+
+        .profile-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-item {
+            transition: background-color 0.3s ease;
+        }
+
+        .nav-item:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .button-edit {
+            background-color: #3b82f6; /* Color azul */
+            border-radius: 0.375rem;
+            transition: background 0.3s ease;
+        }
+
+        .button-edit:hover {
+            background-color: #2563eb; /* Azul más oscuro */
+        }
+
+        .header-title {
+            background: linear-gradient(90deg, #3b82f6, #9333ea);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+<header class="glass-effect shadow-lg border-b border-white/20">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl">
+                    <span class="material-icons text-white text-2xl">account_balance_wallet</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold header-title">
+                        AlkyWallet
+                    </h1>
+                    <p class="text-xs text-gray-600">Tu billetera digital</p>
+                </div>
+            </div>
+            <nav class="flex items-center space-x-2 text-sm text-gray-600">
+                <a href="dashboard.html" class="nav-item px-3 py-2 text-gray-700 rounded-lg">
+                    <span class="material-icons text-sm mr-1">dashboard</span>
+                    Inicio
+                </a>
+                <a href="perfil.html" class="nav-item px-3 py-2 text-blue-600 rounded-lg bg-blue-50">
+                    <span class="material-icons text-sm mr-1">person</span>
+                    Mi perfil
+                </a>
+                <button onclick="logout()" class="nav-item px-3 py-2 text-red-600 rounded-lg">
+                    <span class="material-icons text-sm mr-1">logout</span>
+                    Salir
+                </button>
+            </nav>
+        </div>
+    </div>
+</header>
+
+<main class="flex-1 flex items-center justify-center p-4">
+    <div class="form-container w-full max-w-lg">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-gray-800 mt-4 mb-2">Detalles de tu Perfil</h2>
+            <p class="text-gray-600">Aquí puedes ver y gestionar tu información personal</p>
+        </div>
+
+        <div class="glass-effect rounded-3xl p-8 shadow-2xl profile-card">
+            <div id="perfilInfo" class="profile-info">
+                <p><strong>ID de Usuario:</strong> <span id="userId">--</span></p>
+                <p><strong>Nombre:</strong> <span id="userFullName">--</span></p>
+                <p><strong>Correo Electrónico:</strong> <span id="userEmail">--</span></p>
+                <p><strong>DNI:</strong> <span id="userDni">--</span></p>
+                <p><strong>Teléfono:</strong> <span id="userTelefono">--</span></p>
+                <p><strong>Fecha de Nacimiento:</strong> <span id="userFechaNacimiento">--</span></p>
+                <p><strong>Dirección:</strong> <span id="userDireccion">--</span></p>
+                <p><strong>Número:</strong> <span id="userNumero">--</span></p>
+                <p><strong>Provincia:</strong> <span id="userProvincia">--</span></p>
+                <p><strong>Municipio:</strong> <span id="userMunicipio">--</span></p>
+            </div>
+            <button onclick="editarPerfil()" class="mt-6 px-4 py-2 button-edit text-white rounded-lg">
+                Editar Perfil
+            </button>
+            <button onclick="cambiarContraseña()" class="mt-6 px-4 py-2 button-edit text-white rounded-lg">
+                Cambiar Contraseña
+            </button>
+        </div>
+    </div>
+</main>
+
+<footer class="mt-12 bg-white/50 backdrop-blur-sm border-t border-gray-200">
+    <div class="container mx-auto px-4 py-6">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+            <p class="text-sm text-gray-500">© 2024 AlkyWallet. Todos los derechos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<script>
+    // Función para cargar los datos del usuario desde la API
+    async function loadUserProfile() {
+        const userId = localStorage.getItem('usuarioId');
+
+        if (!userId) {
+            Swal.fire('Error', 'No se ha encontrado el ID de usuario.', 'error');
+            return;
+        }
+
+        try {
+            const response = await fetch(`http://localhost:8080/api/usuario/${userId}`);
+            if (!response.ok) throw new Error('Error al cargar los datos del usuario');
+
+            const usuario = await response.json();
+            document.getElementById('userId').textContent = usuario.id || 'No disponible';
+            document.getElementById('userFullName').textContent = `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim() || 'No disponible';
+            document.getElementById('userEmail').textContent = usuario.email || 'No disponible';
+            document.getElementById('userDni').textContent = usuario.dni || 'No disponible';
+            document.getElementById('userTelefono').textContent = usuario.telefono || 'No disponible';
+            document.getElementById('userFechaNacimiento').textContent = usuario.fechaNacimiento || 'No disponible';
+            document.getElementById('userDireccion').textContent = usuario.direccion || 'No disponible';
+            document.getElementById('userNumero').textContent = usuario.numeroD || 'No disponible';
+            document.getElementById('userProvincia').textContent = usuario.provincia || 'No disponible';
+            document.getElementById('userMunicipio').textContent = usuario.ciudad || 'No disponible';
+        } catch (error) {
+            console.error('Error al cargar los datos:', error);
+            Swal.fire('Error', 'No se pudieron cargar los datos del usuario.', 'error');
+        }
+    }
+
+    // Función para editar el perfil
+    function editarPerfil() {
+        const userId = document.getElementById('userId').textContent;
+        window.location.href = `modificarUsuario.html?id=${userId}`;
+    }
+
+    function cambiarContraseña() {
+        window.location.href = `cambiarContraseña.html?id=${userId}`;
+    }
+
+    // Inicializar al cargar la página
+    document.addEventListener('DOMContentLoaded', loadUserProfile);
+
+    function logout() {
+            Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: 'Se cerrará tu sesión actual',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Limpiar el localStorage
+                    localStorage.removeItem('usuarioId');
+                    localStorage.removeItem('nombreUsuario');
+                    localStorage.removeItem('apellidoUsuario');
+                    localStorage.removeItem('RolUsuario');
+                    localStorage.removeItem('cuentaIds');
+
+                    // Mostrar mensaje de cerrando sesión
+                    Swal.fire({
+                        title: 'Cerrando sesión...',
+                        timer: 1500,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        willClose: () => {
+                            // Redirigir a la página de inicio de sesión
+                            window.location.href = 'index.html'; // Cambia esto por la URL de tu página de inicio de sesión
+                        }
+                    });
+                }
+            });
+        }
+</script>
+</body>
+</html>
+
+

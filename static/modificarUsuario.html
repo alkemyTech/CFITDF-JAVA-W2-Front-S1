@@ -200,23 +200,26 @@
                     </div>
                 </div>
 
-                <!-- Fila Contraseña y Repetir Contraseña -->
-                <div class="field-row">
-                    <div class="space-y-2">
-                        <label for="password" class="flex items-center text-sm font-medium text-gray-700">
-                            <span class="material-icons text-blue-500 mr-2 text-sm">lock</span>
-                            Contraseña (opcional)
-                        </label>
-                        <input type="password" id="password" placeholder="Tu contraseña" class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
-                    </div>
-                    <div class="space-y-2">
-                        <label for="confirmPassword" class="flex items-center text-sm font-medium text-gray-700">
-                            <span class="material-icons text-blue-500 mr-2 text-sm">lock</span>
-                            Repetir Contraseña (opcional)
-                        </label>
-                        <input type="password" id="confirmPassword" placeholder="Repite tu contraseña" class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                <div id="adminFields" class="hidden">
+                    <!-- Fila Contraseña y Repetir Contraseña -->
+                    <div class="field-row">
+                        <div class="space-y-2">
+                            <label for="password" class="flex items-center text-sm font-medium text-gray-700">
+                                <span class="material-icons text-blue-500 mr-2 text-sm">lock</span>
+                                Contraseña (opcional)
+                            </label>
+                            <input type="password" id="password" placeholder="Tu contraseña" class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
+                        <div class="space-y-2">
+                            <label for="confirmPassword" class="flex items-center text-sm font-medium text-gray-700">
+                                <span class="material-icons text-blue-500 mr-2 text-sm">lock</span>
+                                Repetir Contraseña (opcional)
+                            </label>
+                            <input type="password" id="confirmPassword" placeholder="Repite tu contraseña" class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        </div>
                     </div>
                 </div>
+
 
                 <button type="submit" class="pulse-shadow w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 rounded-xl font-semibold transition-all duration-300">
                     <span class="material-icons">person_add</span>
@@ -275,6 +278,11 @@
                     // Primero cargar las provincias, luego llenar el formulario
                     await cargarProvincias();
                     
+                    const rolUsuario = localStorage.getItem('RolUsuario');
+                    if (rolUsuario === 'ADMIN') {
+                        document.getElementById('adminFields').classList.remove('hidden');
+                    }
+
                 } catch (error) {
                     console.error(error);
                     Swal.fire('Error', 'No se pudieron cargar los datos del usuario.', 'error');
@@ -448,6 +456,10 @@
                     return response.json();
                 })
                 .then(data => {
+                    // Actualizar localStorage con el nombre y apellido
+                    localStorage.setItem('nombreUsuario', data.nombre);
+                    localStorage.setItem('apellidoUsuario', data.apellido);
+
                     Swal.fire({
                         icon: 'success',
                         title: 'Modificación exitosa',
@@ -457,7 +469,7 @@
                         if (rolUsuario === 'ADMIN') {
                             window.location.href = 'usuarios.html';
                         } else {
-                            window.location.href = 'index.html';
+                            window.location.href = 'perfil.html';
                         }
                     });
                 })
