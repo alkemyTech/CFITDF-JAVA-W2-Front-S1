@@ -1,4 +1,9 @@
-const usuarioId = 2;
+// Función para obtener el ID del usuario desde localStorage
+function getUserId() {
+    const usuarioId = localStorage.getItem('usuarioId') || localStorage.getItem('cuentaIds');
+    console.log('🔍 ID de usuario obtenido del localStorage:', usuarioId);
+    return usuarioId;
+}
 
 // Función para mostrar la hora actual
 function updateTime() {
@@ -221,11 +226,30 @@ function mostrarModalResumen(resumen, cuentaId) {
     });
 }
 
-// Función para cargar las cuentas y mostrarlas agrupadas por moneda
+// Función para cargar las cuentas y mostrarlas agrupadas por moneda (ACTUALIZADA)
 function cargarCuentas() {
+    const usuarioId = getUserId();
+    
+    if (!usuarioId) {
+        console.error('❌ No se encontró usuarioId en localStorage');
+        Swal.fire({
+            title: 'Sesión no válida',
+            text: 'No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.',
+            icon: 'warning',
+            confirmButtonText: 'Ir al login'
+        }).then(() => {
+            window.location.href = 'index.html';
+        });
+        return;
+    }
+
+    console.log('🔄 Cargando cuentas para usuario:', usuarioId);
+
     fetch(`http://localhost:8080/api/cuentas/usuario/${usuarioId}`)
         .then(res => res.json())
         .then(async cuentas => {
+            console.log('📊 Cuentas obtenidas:', cuentas);
+            
             const lista = document.getElementById("lista-cuentas");
             const emptyState = document.getElementById("empty-accounts");
             
@@ -272,7 +296,7 @@ function cargarCuentas() {
             actualizarEstadisticasSeparadas(cuentasPorMoneda);
         })
         .catch(err => {
-            console.error("Error al cargar cuentas:", err);
+            console.error("❌ Error al cargar cuentas:", err);
             Swal.fire("Error", "No se pudieron cargar las cuentas", "error");
         });
 }
@@ -303,10 +327,11 @@ function generarSeccionMoneda(titulo, cuentas, tipoMoneda, icono) {
     `;
 }
 
-// Función para generar HTML de una tarjeta de cuenta individual
+// Función para generar HTML de una tarjeta de cuenta individual (ACTUALIZADA)
 function generarTarjetaCuenta(cuenta, tipoMoneda) {
     const icono = getAccountIcon(cuenta.tipo, tipoMoneda);
     const color = getAccountColor(cuenta.tipo, tipoMoneda);
+    const usuarioId = getUserId(); // Obtener dinámicamente
     
     return `
         <div class="account-item bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
@@ -514,6 +539,12 @@ function logout() {
         cancelButtonText: 'Cancelar'
     }).then((result) => {
         if (result.isConfirmed) {
+            // Limpiar localStorage al cerrar sesión
+            localStorage.removeItem('usuarioId');
+            localStorage.removeItem('nombreUsuario');
+            localStorage.removeItem('apellidoUsuario');
+            localStorage.removeItem('cuentaIds');
+            
             window.location.href = 'index.html';
         }
     });
@@ -526,62 +557,99 @@ window.deleteAccount = eliminarCuenta;
 window.logout = logout;
 window.mostrarResumen = mostrarResumen;
 
-// Inicialización cuando se carga el DOM
+// Inicialización cuando se carga el DOM (ACTUALIZADA)
 document.addEventListener("DOMContentLoaded", () => {
     updateTime();
     setInterval(updateTime, 1000);
+
+    // Obtener ID del usuario dinámicamente
+    const usuarioId = getUserId();
+    
+    if (!usuarioId) {
+        console.error('❌ No se encontró usuarioId en localStorage');
+        Swal.fire({
+            title: 'Sesión no válida',
+            text: 'No se pudo identificar al usuario. Por favor, inicia sesión nuevamente.',
+            icon: 'warning',
+            confirmButtonText: 'Ir al login'
+        }).then(() => {
+            window.location.href = 'index.html';
+        });
+        return;
+    }
+
+    console.log('✅ Usuario autenticado:', usuarioId);
+
+    // Mostrar el nombre del usuario si está disponible
+    const nombreUsuario = localStorage.getItem('nombreUsuario');
+    const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+    const userFullNameElement = document.getElementById('userFullName');
+    
+    if (userFullNameElement) {
+        if (nombreUsuario && apellidoUsuario) {
+            userFullNameElement.textContent = `${nombreUsuario} ${apellidoUsuario}`;
+        } else if (nombreUsuario) {
+            userFullNameElement.textContent = nombreUsuario;
+        } else {
+            userFullNameElement.textContent = `Usuario ${usuarioId}`;
+        }
+    }
 
     cargarCuentas();
     cargarTiposDeCuenta();
 
     const form = document.getElementById("cuenta-form");
     
-    form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        
-        const tipo = document.getElementById("cuenta-tipo").value;
-        const saldo = 0; // Saldo inicial por defecto en 0
-        const usuarioIdForm = usuarioId; // Usar el ID del usuario logueado
-
-        if (!tipo) {
-            Swal.fire("Atención", "Selecciona un tipo de cuenta", "warning");
-            return;
-        }
-
-        try {
-            const res = await fetch("http://localhost:8080/api/cuentas", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ 
-                    tipo, 
-                    saldo, 
-                    usuarioId: parseInt(usuarioIdForm),
-                    moneda: 'peso' // Por defecto crear en pesos
-                }),
-            });
+    if (form) {
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
             
-            if (res.ok) {
-                Swal.fire({
-                    title: 'Éxito',
-                    text: 'Cuenta creada correctamente',
-                    icon: 'success',
-                    timer: 2000,
-                    showConfirmButton: false
-                }).then(() => {
-                    form.reset();
-                    ocultarFormulario();
-                    cargarCuentas();
-                });
-            } else {
-                const errorData = await res.json().catch(() => ({}));
-                throw new Error(errorData.message || 'Error en el servidor');
-            }
-        } catch (error) {
-            console.error('Error al guardar cuenta:', error);
-            Swal.fire("Error", error.message || "No se pudo guardar la cuenta", "error");
-        }
-    });
+            const tipo = document.getElementById("cuenta-tipo").value;
+            const saldo = 0; // Saldo inicial por defecto en 0
+            const usuarioIdForm = getUserId(); // Usar el ID del usuario logueado dinámicamente
 
-    // No necesitamos más el campo de usuario ID en el formulario
-    // El usuarioId se toma automáticamente del usuario logueado
+            if (!tipo) {
+                Swal.fire("Atención", "Selecciona un tipo de cuenta", "warning");
+                return;
+            }
+
+            if (!usuarioIdForm) {
+                Swal.fire("Error", "No se pudo identificar al usuario", "error");
+                return;
+            }
+
+            try {
+                const res = await fetch("http://localhost:8080/api/cuentas", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ 
+                        tipo, 
+                        saldo, 
+                        usuarioId: parseInt(usuarioIdForm),
+                        moneda: 'peso' // Por defecto crear en pesos
+                    }),
+                });
+                
+                if (res.ok) {
+                    Swal.fire({
+                        title: 'Éxito',
+                        text: 'Cuenta creada correctamente',
+                        icon: 'success',
+                        timer: 2000,
+                        showConfirmButton: false
+                    }).then(() => {
+                        form.reset();
+                        ocultarFormulario();
+                        cargarCuentas();
+                    });
+                } else {
+                    const errorData = await res.json().catch(() => ({}));
+                    throw new Error(errorData.message || 'Error en el servidor');
+                }
+            } catch (error) {
+                console.error('Error al guardar cuenta:', error);
+                Swal.fire("Error", error.message || "No se pudo guardar la cuenta", "error");
+            }
+        });
+    }
 });
