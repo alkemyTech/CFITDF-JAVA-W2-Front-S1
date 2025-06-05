@@ -4,18 +4,13 @@ document.addEventListener('DOMContentLoaded', function() {
 
     updateCurrentTime();
     mostrarTarjetas();
-
-    setTimeout(() => {
-        Swal.fire({
-        toast: true,
-        position: 'top-end',
-        icon: 'success',
-        title: '¡Bienvenida de vuelta, Melina!',
-        showConfirmButton: false,
-        timer: 3000,
-        timerProgressBar: true
-        });
-    }, 1000);
+    const nombreUsuario = localStorage.getItem('nombreUsuario');
+    const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+        if (nombreUsuario && apellidoUsuario) {
+            document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
+        } else {
+            document.getElementById('userFullName').textContent = 'Usuario'; // Nombre por defecto si no hay
+        }
 });
 
 function updateCurrentTime() {
@@ -46,7 +41,7 @@ function logout() {
                 timerProgressBar: true,
                 showConfirmButton: false,
                 willClose: () => {
-                    window.location.href = 'login.html';
+                    window.location.href = 'index.html';
                 }
             });
         }
@@ -56,8 +51,7 @@ function logout() {
 const mostrarTarjetas = async () => {
     const contenedorPadre = document.getElementById("contenedor-tarjetas");
     try {
-        const response = await fetch(`http://localhost:8080/api/tarjetas/usuario/1`);
-        
+        const response = await fetch(`http://localhost:8080/api/tarjetas/usuario/${userId}`);
         if(!response.ok) {
             contenedorPadre.innerHTML = `
                 <div class="flex items-center gap-2 text-gray-600">
@@ -130,7 +124,7 @@ const mostrarTarjetas = async () => {
 }
 
     const solicitarTarjeta = () => {
-        localStorage.setItem("userId", userId); //despues cambiar por usuario dinamico
+        localStorage.setItem("userId", userId);
         window.location.href = "nuevatarjeta.html";
     }
 
