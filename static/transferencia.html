@@ -104,6 +104,11 @@
             border-color: #ef4444;
         }
 
+        .form-input.error {
+            border-color: #ef4444;
+            background: rgba(254, 242, 242, 1);
+        }
+
         .submit-btn {
             background: linear-gradient(135deg, #10B981 0%, #059669 100%);
             position: relative;
@@ -114,6 +119,13 @@
         .submit-btn:hover {
             transform: translateY(-2px);
             box-shadow: 0 10px 20px rgba(16, 185, 129, 0.3);
+        }
+
+        .submit-btn:disabled {
+            background: #9CA3AF;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
         }
 
         .submit-btn:before {
@@ -213,7 +225,37 @@
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
         }
-    </style>
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: #ef4444;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+        }
+
+        .success-message {
+            color: #10b981;
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            display: flex;
+            align-items: center;
+        }
+        </style>
     </head>
     <body class="gradient-bg text-gray-800 min-h-screen">
 
@@ -336,7 +378,7 @@
                             <div class="flex items-baseline space-x-2">
                                 <span class="text-2xl font-bold">$</span>
                                 <span id="saldoDisponible"
-                                    class="text-2xl font-bold">125.750,00</span>
+                                    class="text-2xl font-bold">0,00</span>
                                 <span class="text-sm opacity-75">ARS</span>
                             </div>
                         </div>
@@ -398,29 +440,61 @@
                             </h3>
 
                             <form id="transferForm" class="space-y-6">
-                                <!-- Búsqueda de destinatario -->
+                                <!-- Selección de cuenta origen -->
                                 <div>
-                                    <label
+                                    <label for="cuentaOrigen"
                                         class="block text-sm font-semibold text-gray-700 mb-2">
-                                        CBU / CVU / Alias / Email
+                                        Cuenta de origen *
                                     </label>
                                     <div class="relative">
                                         <span
-                                            class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">search</span>
-                                        <input type="text"
-                                            id="destinatario"
-                                            placeholder="Ingresa CBU, CVU, alias o email del destinatario"
-                                            class="form-input w-full pl-10 pr-4 py-3 rounded-xl outline-none text-gray-700"
+                                            class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">account_balance</span>
+                                        <select id="cuentaOrigen"
+                                            class="form-input w-full pl-10 pr-10 py-3 rounded-xl outline-none text-gray-700 appearance-none cursor-pointer"
                                             required>
-                                        <div id="destinatarioStatus"
+                                            <option value="">Selecciona una cuenta...</option>
+                                        </select>
+                                        <span
+                                            class="material-icons absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 pointer-events-none">expand_more</span>
+                                    </div>
+                                    <div id="cuentaOrigenError" class="error-message hidden">
+                                        <span class="material-icons text-sm mr-1">error</span>
+                                        <span>Debe seleccionar una cuenta de origen</span>
+                                    </div>
+                                </div>
+
+                                <!-- CBU del destinatario -->
+                                <div>
+                                    <label for="cbuDestinatario"
+                                        class="block text-sm font-semibold text-gray-700 mb-2">
+                                        CBU del destinatario *
+                                    </label>
+                                    <div class="relative">
+                                        <span
+                                            class="material-icons absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">account_balance</span>
+                                        <input type="text"
+                                            id="cbuDestinatario"
+                                            placeholder="Ingresa el CBU del destinatario (22 dígitos)"
+                                            class="form-input w-full pl-10 pr-4 py-3 rounded-xl outline-none text-gray-700"
+                                            maxlength="22"
+                                            pattern="[0-9]{22}"
+                                            required>
+                                        <div id="cbuStatus"
                                             class="absolute right-3 top-1/2 transform -translate-y-1/2 hidden">
                                             <span
                                                 class="material-icons text-green-500">check_circle</span>
                                         </div>
                                     </div>
+                                    <div id="cbuError" class="error-message hidden">
+                                        <span class="material-icons text-sm mr-1">error</span>
+                                        <span>El CBU debe tener exactamente 22 dígitos numéricos</span>
+                                    </div>
+                                    <div id="cbuSuccess" class="success-message hidden">
+                                        <span class="material-icons text-sm mr-1">check_circle</span>
+                                        <span>CBU válido</span>
+                                    </div>
                                     <p class="text-xs text-gray-500 mt-1">
-                                        Ejemplo: juan.perez,
-                                        0000003100010000000001, juan@email.com
+                                        Ejemplo: 0000003100010000000001
                                     </p>
                                 </div>
 
@@ -436,21 +510,20 @@
                                         <div>
                                             <p
                                                 class="font-semibold text-gray-800"
-                                                id="nombreDestinatario">Juan
-                                                Pérez</p>
+                                                id="nombreDestinatario">Destinatario encontrado</p>
                                             <p class="text-sm text-gray-600"
-                                                id="datosDestinatario">juan.perez@email.com</p>
+                                                id="datosDestinatario"></p>
                                             <p class="text-xs text-blue-600">✓
-                                                Destinatario verificado</p>
+                                                CBU verificado</p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <!-- Monto -->
                                 <div>
-                                    <label
+                                    <label for="monto"
                                         class="block text-sm font-semibold text-gray-700 mb-2">
-                                        Monto a transferir
+                                        Monto a transferir *
                                     </label>
                                     <div class="relative">
                                         <span
@@ -466,6 +539,10 @@
                                         <span
                                             class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-sm">ARS</span>
                                     </div>
+                                    <div id="montoError" class="error-message hidden">
+                                        <span class="material-icons text-sm mr-1">error</span>
+                                        <span id="montoErrorText">Monto inválido</span>
+                                    </div>
                                     <div
                                         class="flex justify-between items-center mt-2">
                                         <p class="text-xs text-gray-500">Mínimo:
@@ -477,7 +554,7 @@
 
                                 <!-- Concepto -->
                                 <div>
-                                    <label
+                                    <label for="concepto"
                                         class="block text-sm font-semibold text-gray-700 mb-2">
                                         Concepto (opcional)
                                     </label>
@@ -505,11 +582,11 @@
                                             class="material-icons mr-2">arrow_back</span>
                                         Cancelar
                                     </button>
-                                    <button type="submit"
+                                    <button type="submit" id="submitBtn"
                                         class="submit-btn flex-1 px-6 py-3 text-white rounded-xl font-semibold relative z-10 flex items-center justify-center">
-                                        <span
+                                        <span id="submitIcon"
                                             class="material-icons mr-2">send</span>
-                                        Continuar
+                                        <span id="submitText">Continuar</span>
                                     </button>
                                 </div>
                             </form>
@@ -525,14 +602,14 @@
                             <h3
                                 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
                                 <span
-                                    class="material-icons mr-2 text-purple-600">Contacts</span>
-                                Contactos frecuentes
+                                    class="material-icons mr-2 text-purple-600">contacts</span>
+                                CBUs frecuentes
                             </h3>
 
                             <div class="space-y-3">
                                 <div
                                     class="contact-item flex items-center justify-between p-3 rounded-xl bg-white/50 hover:bg-white/80 cursor-pointer"
-                                    onclick="selectContact('Juan Pérez', 'juan.perez')">
+                                    onclick="selectContact('Juan Pérez', '0000003100010000000001')">
                                     <div class="flex items-center space-x-3">
                                         <div
                                             class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -544,7 +621,7 @@
                                                 class="font-medium text-gray-800 text-sm">Juan
                                                 Pérez</p>
                                             <p
-                                                class="text-xs text-gray-500">juan.perez</p>
+                                                class="text-xs text-gray-500 font-mono">0000003100010000000001</p>
                                         </div>
                                     </div>
                                     <span
@@ -553,7 +630,7 @@
 
                                 <div
                                     class="contact-item flex items-center justify-between p-3 rounded-xl bg-white/50 hover:bg-white/80 cursor-pointer"
-                                    onclick="selectContact('María González', 'maria.gonzalez@email.com')">
+                                    onclick="selectContact('María González', '0000003100010000000002')">
                                     <div class="flex items-center space-x-3">
                                         <div
                                             class="w-10 h-10 bg-pink-100 rounded-full flex items-center justify-center">
@@ -565,7 +642,7 @@
                                                 class="font-medium text-gray-800 text-sm">María
                                                 González</p>
                                             <p
-                                                class="text-xs text-gray-500">maria.gonzalez@email.com</p>
+                                                class="text-xs text-gray-500 font-mono">0000003100010000000002</p>
                                         </div>
                                     </div>
                                     <span
@@ -574,7 +651,7 @@
 
                                 <div
                                     class="contact-item flex items-center justify-between p-3 rounded-xl bg-white/50 hover:bg-white/80 cursor-pointer"
-                                    onclick="selectContact('Carlos Rodriguez', 'carlos.rodriguez')">
+                                    onclick="selectContact('Carlos Rodriguez', '0000003100010000000003')">
                                     <div class="flex items-center space-x-3">
                                         <div
                                             class="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
@@ -586,7 +663,7 @@
                                                 class="font-medium text-gray-800 text-sm">Carlos
                                                 Rodriguez</p>
                                             <p
-                                                class="text-xs text-gray-500">carlos.rodriguez</p>
+                                                class="text-xs text-gray-500 font-mono">0000003100010000000003</p>
                                         </div>
                                     </div>
                                     <span
@@ -609,17 +686,12 @@
                             <h3
                                 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
                                 <span
-                                    class="material-icons mr-2 text-green-600">Security</span>
+                                    class="material-icons mr-2 text-green-600">security</span>
                                 Información de seguridad
                             </h3>
 
                             <div class="space-y-4">
                                 <div class="flex items-start space-x-3">
-                                    <div
-                                        class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
-                                        <span
-                                            class="material-icons text-green-600 text-sm">verified_user</span>
-                                    </div>
                                     <div>
                                         <p
                                             class="text-sm font-medium text-gray-800">Transferencias
