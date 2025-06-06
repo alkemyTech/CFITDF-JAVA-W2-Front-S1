@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html lang="es">
+<!-- head.html -->
 <head>
-    <meta charset="UTF-8">
-    <title>Dashboard - AlkyWallet</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AlkyWallet - tu billetera digital con carga, pagos, transferencias y control total." />
+  <meta name="keywords" content="billetera virtual, pagos, transferencias, finanzas personales, AlkyWallet" />
+  <meta name="author" content="Pingüinos Tecnologícos" />
+  <meta property="og:title" content="AlkyWallet" />
+  <meta property="og:description" content="Gestioná tu dinero de forma fácil y segura con AlkyWallet." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="http://localhost:8080" />
+  <meta property="og:image" content="/assets/logo.png" />
+  <title>Dashboard - AlkyWallet</title>
 
-    <!-- Tailwind CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Tailwind CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
 
-    <!-- SweetAlert2 -->
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
-    <!-- Material Icons -->
-    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
 
-    <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <style>
+  <style>
         body {
             font-family: 'Inter', sans-serif;
         }
@@ -142,81 +151,106 @@
             border-left-color: #667eea;
             background: rgba(102, 126, 234, 0.05);
         }
+
+        .floating-animation {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-5px); }
+        }
+
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .amount-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .amount-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+
+        .amount-card.selected {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .payment-method {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .payment-method:hover {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.05);
+        }
+
+        .payment-method.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+        }
+
+        .input-focus:focus {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .nav-item {
+            position: relative;
+            transition: all 0.3s ease;
+        }
+
+        .nav-item:after {
+            content: '';
+            position: absolute;
+            width: 0;
+            height: 2px;
+            bottom: -4px;
+            left: 50%;
+            background: linear-gradient(90deg, #667eea, #764ba2);
+            transition: all 0.3s ease;
+            transform: translateX(-50%);
+        }
+
+        .nav-item:hover:after {
+            width: 100%;
+        }
+
+        .progress-step {
+            transition: all 0.3s ease;
+        }
+
+        .progress-step.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .progress-step.completed {
+            background: #10b981;
+            color: white;
+        }
     </style>
 </head>
 
 <body class="gradient-bg text-gray-800 min-h-screen">
-    <!-- Header -->
-    <header class="glass-effect shadow-lg border-b border-white/20 sticky top-0 z-50">
-        <div class="container mx-auto px-4 py-4">
-            <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-                <!-- Logo y título -->
-                <div class="flex items-center space-x-3">
-                    <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl floating-animation">
-                        <span class="material-icons text-white text-2xl">account_balance_wallet</span>
-                    </div>
-                    <div>
-                        <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            AlkyWallet
-                        </h1>
-                        <p class="text-xs text-gray-600">Dashboard Principal</p>
-                    </div>
-                </div>
-
-                <!-- Saludo y navegación -->
-                <div class="flex-1 lg:flex lg:items-center lg:justify-between">
-                    <!-- Saludo personalizado -->
-                    <div class="flex items-center space-x-3 mb-4 lg:mb-0">
-                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-                            <span class="material-icons text-white text-sm">person</span>
-                        </div>
-                        <div>
-                            <p class="text-sm font-medium text-gray-700">
-                                ¡Hola, <span id="userFullName" class="font-bold text-gray-900"></span>! 👋
-                            </p>
-                            <p class="text-xs text-gray-500" id="currentTime"></p>
-                        </div>
-                    </div>
-
-                    <!-- Navegación -->
-                    <nav class="flex flex-wrap gap-1 lg:gap-4">
-                        <a href="dashboard.html" class="nav-item px-3 py-2 text-sm font-medium text-blue-600 rounded-lg bg-blue-50">
-                            <span class="material-icons text-sm mr-1">dashboard</span>
-                            Inicio
-                        </a>
-                        <a href="carga.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
-                            <span class="material-icons text-sm mr-1">add_circle</span>
-                            Cargar
-                        </a>
-                        <a href="pago.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
-                            <span class="material-icons text-sm mr-1">payments</span>
-                            Pagar
-                        </a>
-                        <a href="transferencia.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
-                            <span class="material-icons text-sm mr-1">send</span>
-                            Transferir
-                        </a>
-                        <a href="movimientos.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
-                            <span class="material-icons text-sm mr-1">history</span>
-                            Movimientos
-                        </a>
-                        <a href="cuentas.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
-                            <span class="material-icons text-sm mr-1">account_balance</span>
-                            Cuentas
-                        </a>
-                        <a href="perfil.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
-                            <span class="material-icons text-sm mr-1">person</span>
-                            Mi perfil
-                        </a>
-                        <button onclick="logout()" class="nav-item px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg ml-2">
-                            <span class="material-icons text-sm mr-1">logout</span>
-                            Salir
-                        </button>
-                    </nav>
-                </div>
-            </div>
-        </div>
-    </header>
+      <!-- Header Placeholder -->
+  <div id="header-placeholder" class="mb-4"></div>
 
     <!-- Contenido principal -->
     <main class="container mx-auto p-4 lg:p-6">
@@ -390,89 +424,11 @@
         </section>
     </main>
 
-    <!-- Footer -->
-    <footer class="mt-12 bg-white/50 backdrop-blur-sm border-t border-gray-200">
-        <div class="container mx-auto px-4 py-6">
-            <div class="flex flex-col md:flex-row items-center justify-between gap-4">
-                <div class="flex items-center space-x-4 text-sm text-gray-600">
-                    <div class="flex items-center">
-                        <span class="material-icons text-sm mr-1 text-green-500">security</span>
-                        <span>Protegido por SSL</span>
-                    </div>
-                    <div class="flex items-center">
-                        <span class="material-icons text-sm mr-1 text-blue-500">support_agent</span>
-                        <span>Soporte 24/7</span>
-                    </div>
-                </div>
-                <p class="text-sm text-gray-500">© 2024 AlkyWallet. Todos los derechos reservados.</p>
-            </div>
-        </div>
-    </footer>
+          <!-- Footer Placeholder -->
+  <div id="footer-placeholder" class="mt-8"></div>
 
     <!-- Script para funcionalidad básica -->
-    <script>
-        // Función para mostrar la hora actual
-        function updateTime() {
-            const now = new Date();
-            const timeString = now.toLocaleString('es-AR', {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-                hour: '2-digit',
-                minute: '2-digit'
-            });
-            document.getElementById('currentTime').textContent = timeString;
-        }
-        // Inicializar al cargar la página
-        document.addEventListener('DOMContentLoaded', function() {
-            updateTime();
-            setInterval(updateTime, 60000); // Actualizar cada minuto
-
-            // Obtener el nombre y apellido del usuario del localStorage
-            const nombreUsuario = localStorage.getItem('nombreUsuario');
-            const apellidoUsuario = localStorage.getItem('apellidoUsuario');
-            
-            if (nombreUsuario && apellidoUsuario) {
-                document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
-            } else {
-                document.getElementById('userFullName').textContent = 'Usuario'; // Nombre por defecto si no hay
-            }
-        });
-
-        function logout() {
-            Swal.fire({
-                title: '¿Cerrar sesión?',
-                text: 'Se cerrará tu sesión actual',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#3085d6',
-                confirmButtonText: 'Sí, cerrar sesión',
-                cancelButtonText: 'Cancelar'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Limpiar el localStorage
-                    localStorage.removeItem('usuarioId');
-                    localStorage.removeItem('nombreUsuario');
-                    localStorage.removeItem('apellidoUsuario');
-                    localStorage.removeItem('RolUsuario');
-                    localStorage.removeItem('cuentaIds');
-
-                    // Mostrar mensaje de cerrando sesión
-                    Swal.fire({
-                        title: 'Cerrando sesión...',
-                        timer: 1500,
-                        timerProgressBar: true,
-                        showConfirmButton: false,
-                        willClose: () => {
-                            // Redirigir a la página de inicio de sesión
-                            window.location.href = 'index.html'; // Cambia esto por la URL de tu página de inicio de sesión
-                        }
-                    });
-                }
-            });
-        }
-    </script>
+    <script src="./js/header.js"></script>
+     <script src="./js/loader.js"></script>
 </body>
 </html>
