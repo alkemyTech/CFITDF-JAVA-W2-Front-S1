@@ -1,5 +1,3 @@
-// public/js/header.js
-
 function logout() {
   Swal.fire({
     title: "¿Cerrar sesión?",
@@ -124,11 +122,9 @@ class HeaderManager {
     if (!this.nombreUsuarioEl) return;
     const nombre = localStorage.getItem("nombreUsuario");
     const apellido = localStorage.getItem("apellidoUsuario");
-    if (nombre && apellido) {
-      this.nombreUsuarioEl.textContent = `${nombre} ${apellido}`;
-    } else {
-      this.nombreUsuarioEl.textContent = "Usuario";
-    }
+    this.nombreUsuarioEl.textContent = nombre && apellido
+      ? `${nombre} ${apellido}`
+      : "Usuario";
   }
 }
 
@@ -136,22 +132,15 @@ function initHeaderLogic() {
   new HeaderManager();
 }
 window.initHeaderLogic = initHeaderLogic;
+
 // Inicializar al cargar la página
 document.addEventListener("DOMContentLoaded", function () {
+  // Inicializar el HeaderManager
+  initHeaderLogic();
+  
+  // Carga inicial del reloj
   updateCurrentTime();
-  setInterval(updateTime, 60000); // Actualizar cada minuto
-
-  // Obtener el nombre y apellido del usuario del localStorage
-  const nombreUsuario = localStorage.getItem("nombreUsuario");
-  const apellidoUsuario = localStorage.getItem("apellidoUsuario");
-
-  if (nombreUsuario && apellidoUsuario) {
-    document.getElementById(
-      "userFullName"
-    ).textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
-  } else {
-    document.getElementById("userFullName").textContent = "Usuario"; // Nombre por defecto si no hay
-  }
+  setInterval(updateCurrentTime, 60000); // Actualizar reloj cada minuto
 });
 
 function updateCurrentTime() {
@@ -165,24 +154,4 @@ function updateCurrentTime() {
     currentTimeEl.textContent = timeString;
   }
 }
-
-document.addEventListener('DOMContentLoaded', function() {
-  // Carga inicial del reloj
-  updateCurrentTime();
-
-  // Cargar nombre de usuario, solo si existe el elemento
-  const nombreUsuario = localStorage.getItem('nombreUsuario');
-  const apellidoUsuario = localStorage.getItem('apellidoUsuario');
-  const nombreEl = document.getElementById('userFullName');
-  if (nombreEl) {
-    if (nombreUsuario && apellidoUsuario) {
-      nombreEl.textContent = `${nombreUsuario} ${apellidoUsuario}`;
-    } else {
-      nombreEl.textContent = 'Usuario';
-    }
-  }
-
-  // Actualizar reloj cada minuto, si existe elemento
-  setInterval(updateCurrentTime, 60000);
-});
 

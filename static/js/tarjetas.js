@@ -13,14 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 });
 
-function updateCurrentTime() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('es-AR', {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    document.getElementById('currentTime').textContent = `${timeString}`;
-}
+
 
 
 function logout() {
