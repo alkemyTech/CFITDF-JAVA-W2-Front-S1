@@ -23,32 +23,6 @@
         document.getElementById('transactionCount').textContent = '23';
     }
 
-    // Función de logout mejorada
-    function logout() {
-        Swal.fire({
-            title: '¿Cerrar sesión?',
-            text: 'Se cerrará tu sesión actual',
-            icon: 'question',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, cerrar sesión',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire({
-                    title: 'Cerrando sesión...',
-                    timer: 1500,
-                    timerProgressBar: true,
-                    showConfirmButton: false,
-                    willClose: () => {
-                        window.location.href = 'login.html';
-                    }
-                });
-            }
-        });
-    }
-
     // Animación de números (contador)
     function animateNumber(elementId, finalNumber, duration = 2000) {
         const element = document.getElementById(elementId);
@@ -93,6 +67,16 @@
                 timerProgressBar: true
             });
         }, 1000);
+
+        // Obtener el nombre y apellido del usuario del localStorage
+            const nombreUsuario = localStorage.getItem('nombreUsuario');
+            const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+            
+            if (nombreUsuario && apellidoUsuario) {
+                document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
+            } else {
+                document.getElementById('userFullName').textContent = 'Usuario'; // Nombre por defecto si no hay
+            }
     });
 
     // Actualizar último update cada minuto

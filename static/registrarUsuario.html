@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>AlkyWallet - Registro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- SweetAlert2 CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .input-focus {
+            transition: all 0.3s ease;
+            padding: 12px; /* Reducir padding */
+            font-size: 0.9rem; /* Reducir tamaño de fuente */
+        }
+
+        .space-y-2 {
+            margin-bottom: 0.5rem; /* Reducir espacio entre campos */
+        }
+
+        .pulse-shadow {
+            box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+            transition: all 0.3s ease;
+        }
+
+        .pulse-shadow:hover {
+            box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+        }
+
+        .rounded-3xl {
+            border-radius: 1rem; /* Ajustar bordes */
+        }
+
+        /* Estilo para la fila de campos */
+        .field-row {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px; /* Espacio entre los campos */
+        }
+
+        .field-row > div {
+            flex: 1; /* Cada campo ocupa el 50% del ancho */
+        }
+
+        /* Ajuste para el ancho del formulario */
+        .form-container {
+            max-width: 800px; /* Aumentar el ancho máximo */
+            width: 100%; /* Asegurar que el ancho sea del 100% */
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen flex flex-col">
+<header class="glass-effect shadow-lg border-b border-white/20">
+    <div class="container mx-auto px-4 py-4">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl floating-animation">
+                    <span class="material-icons text-white text-2xl">account_balance_wallet</span>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                        AlkyWallet
+                    </h1>
+                    <p class="text-xs text-gray-600">Tu billetera digital</p>
+                </div>
+            </div>
+
+            <div class="hidden sm:flex items-center space-x-2 text-sm text-gray-600">
+                <span class="material-icons text-green-500 text-sm">security</span>
+                <span>Conexión segura</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<main class="flex-1 flex items-center justify-center p-4">
+    <div class="form-container w-full">
+        <div class="text-center mb-8">
+            <h2 class="text-3xl font-bold text-white mt-4 mb-2">¡Regístrate!</h2>
+            <p class="text-blue-100">Crea tu cuenta en tu billetera digital</p>
+        </div>
+
+        <div class="glass-effect rounded-3xl p-8 shadow-2xl">
+            <form id="registerForm" class="space-y-6">
+                <!-- Fila Nombre y Apellido -->
+                <div class="field-row">
+                    <div class="space-y-2">
+                        <label for="nombre" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">person</span>
+                            Nombre
+                        </label>
+                        <input type="text" id="nombre" placeholder="Tu nombre" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="apellido" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">person</span>
+                            Apellido
+                        </label>
+                        <input type="text" id="apellido" placeholder="Tu apellido" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Fila Email y DNI -->
+                <div class="field-row">
+                    <div class="space-y-2">
+                        <label for="email" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">email</span>
+                            Correo electrónico
+                        </label>
+                        <input type="email" id="email" placeholder="ejemplo@mail.com" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="dni" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">badge</span>
+                            DNI
+                        </label>
+                        <input type="text" id="dni" placeholder="Tu DNI" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Fila Teléfono y Fecha de Nacimiento -->
+                <div class="field-row">
+                    <div class="space-y-2">
+                        <label for="telefono" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">phone</span>
+                            Teléfono
+                        </label>
+                        <input type="tel" id="telefono" placeholder="Tu teléfono" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="fechaNacimiento" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">calendar_today</span>
+                            Fecha de Nacimiento
+                        </label>
+                        <input type="date" id="fechaNacimiento" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Fila Provincia y Municipio -->
+                <div class="field-row">
+                    <div class="space-y-2">
+                        <label for="provincia" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">map</span>
+                            Provincia
+                        </label>
+                        <select id="provincia" class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Selecciona una provincia</option>
+                        </select>
+                    </div>
+                    <div class="space-y-2">
+                        <label for="municipio" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">location_city</span>
+                            Municipio
+                        </label>
+                        <select id="municipio" class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500" disabled>
+                            <option value="">Selecciona un municipio</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Fila Dirección y Número -->
+                <div class="field-row">
+                    <div class="space-y-2">
+                        <label for="direccion" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">home</span>
+                            Dirección
+                        </label>
+                        <input type="text" id="direccion" placeholder="Tu dirección" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="numero" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">house</span>
+                            Número
+                        </label>
+                        <input type="text" id="numero" placeholder="Número" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <!-- Fila Contraseña y Repetir Contraseña -->
+                <div class="field-row">
+                    <div class="space-y-2">
+                        <label for="password" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">lock</span>
+                            Contraseña
+                        </label>
+                        <input type="password" id="password" placeholder="Tu contraseña" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                    <div class="space-y-2">
+                        <label for="confirmPassword" class="flex items-center text-sm font-medium text-gray-700">
+                            <span class="material-icons text-blue-500 mr-2 text-sm">lock</span>
+                            Repetir Contraseña
+                        </label>
+                        <input type="password" id="confirmPassword" placeholder="Repite tu contraseña" required class="input-focus w-full border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+
+                <button type="submit" class="pulse-shadow w-full bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white py-4 rounded-xl font-semibold transition-all duration-300">
+                    <span class="material-icons">person_add</span>
+                    <span>Registrar</span>
+                </button>
+
+                <div class="mt-6 text-center">
+                    <p class="text-sm text-gray-600">
+                        ¿Ya tienes cuenta?
+                        <a href="index.html" class="text-blue-600 hover:text-blue-700 font-medium transition-colors">Inicia sesión aquí</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+
+        <div class="mt-8 text-center">
+            <div class="flex items-center justify-center space-x-4 text-sm text-blue-100">
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1">shield</span>
+                    <span>Seguro</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1">speed</span>
+                    <span>Rápido</span>
+                </div>
+                <div class="flex items-center">
+                    <span class="material-icons text-sm mr-1">support_agent</span>
+                    <span>Soporte 24/7</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="./js/registrar.js"></script>
+<script src="./js/auth.js"></script>
+</body>
+</html>  
+
+
+
+

@@ -172,7 +172,7 @@
                         </div>
                         <div>
                             <p class="text-sm font-medium text-gray-700">
-                                ¡Hola, <span class="font-bold text-gray-900">Melina</span>! 👋
+                                ¡Hola, <span id="userFullName" class="font-bold text-gray-900"></span>! 👋
                             </p>
                             <p class="text-xs text-gray-500" id="currentTime"></p>
                         </div>
@@ -203,6 +203,10 @@
                         <a href="cuentas.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
                             <span class="material-icons text-sm mr-1">account_balance</span>
                             Cuentas
+                        </a>
+                        <a href="perfil.html" class="nav-item px-3 py-2 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg">
+                            <span class="material-icons text-sm mr-1">person</span>
+                            Mi perfil
                         </a>
                         <button onclick="logout()" class="nav-item px-3 py-2 text-sm font-medium text-red-600 hover:text-red-700 hover:bg-red-50 rounded-lg ml-2">
                             <span class="material-icons text-sm mr-1">logout</span>
@@ -420,20 +424,55 @@
             });
             document.getElementById('currentTime').textContent = timeString;
         }
-
-        // Función de logout
-        function logout() {
-            if (confirm('¿Estás seguro que deseas cerrar sesión?')) {
-                // Aquí iría la lógica de logout
-                window.location.href = 'login.html';
-            }
-        }
-
         // Inicializar al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
             updateTime();
             setInterval(updateTime, 60000); // Actualizar cada minuto
+
+            // Obtener el nombre y apellido del usuario del localStorage
+            const nombreUsuario = localStorage.getItem('nombreUsuario');
+            const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+            
+            if (nombreUsuario && apellidoUsuario) {
+                document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
+            } else {
+                document.getElementById('userFullName').textContent = 'Usuario'; // Nombre por defecto si no hay
+            }
         });
+
+        function logout() {
+            Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: 'Se cerrará tu sesión actual',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Limpiar el localStorage
+                    localStorage.removeItem('usuarioId');
+                    localStorage.removeItem('nombreUsuario');
+                    localStorage.removeItem('apellidoUsuario');
+                    localStorage.removeItem('RolUsuario');
+                    localStorage.removeItem('cuentaIds');
+
+                    // Mostrar mensaje de cerrando sesión
+                    Swal.fire({
+                        title: 'Cerrando sesión...',
+                        timer: 1500,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        willClose: () => {
+                            // Redirigir a la página de inicio de sesión
+                            window.location.href = 'index.html'; // Cambia esto por la URL de tu página de inicio de sesión
+                        }
+                    });
+                }
+            });
+        }
     </script>
 </body>
 </html>

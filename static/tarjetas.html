@@ -2,7 +2,7 @@
 <html lang="es">
   <head>
     <meta charset="UTF-8" />
-    <title>Dashboard - AlkyWallet</title>
+    <title>Tarjetas - AlkyWallet</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
     <!-- Tailwind CDN -->
@@ -28,14 +28,6 @@
         font-family: "Inter", sans-serif;
       }
 
-      .gradient-bg {
-        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-      }
-
-      .card-gradient {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-      }
-
       .glass-effect {
         background: rgba(255, 255, 255, 0.95);
         backdrop-filter: blur(20px);
@@ -56,10 +48,6 @@
         }
       }
 
-      .pulse-animation {
-        animation: pulse 2s infinite;
-      }
-
       .slide-in {
         animation: slideIn 0.5s ease-out;
       }
@@ -73,14 +61,6 @@
           opacity: 1;
           transform: translateY(0);
         }
-      }
-
-      .hover-scale {
-        transition: all 0.3s ease;
-      }
-
-      .hover-scale:hover {
-        transform: scale(1.02);
       }
 
       .nav-item {
@@ -102,27 +82,6 @@
 
       .nav-item:hover:after {
         width: 100%;
-      }
-
-      .balance-card {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        position: relative;
-        overflow: hidden;
-      }
-
-      .balance-card::before {
-        content: "";
-        position: absolute;
-        top: -50%;
-        right: -50%;
-        width: 100%;
-        height: 100%;
-        background: radial-gradient(
-          circle,
-          rgba(255, 255, 255, 0.1) 0%,
-          transparent 70%
-        );
-        animation: shimmer 3s ease-in-out infinite;
       }
 
       @keyframes shimmer {
@@ -159,14 +118,16 @@
         height: 300px;
       }
 
-      .movement-item {
+      .filter-btn {
         transition: all 0.3s ease;
-        border-left: 4px solid transparent;
+        position: relative;
+        overflow: hidden;
       }
 
-      .movement-item:hover {
-        border-left-color: #667eea;
-        background: rgba(102, 126, 234, 0.05);
+      .filter-btn.active {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        transform: scale(1.05);
       }
     </style>
   </head>
@@ -194,7 +155,7 @@
               >
                 AlkyWallet
               </h1>
-              <p class="text-xs text-gray-600">Dashboard Principal</p>
+              <p class="text-xs text-gray-600">Tarjetas</p>
             </div>
           </div>
 
@@ -209,7 +170,9 @@
               </div>
               <div>
                 <p class="text-sm font-medium text-gray-700">
-                  ¡Hola, <span class="font-bold text-gray-900">Melina</span>! 👋
+                  ¡Hola,
+                  <span id="userFullName" class="font-bold text-gray-900"></span
+                  >! 👋
                 </p>
                 <p class="text-xs text-gray-500" id="currentTime"></p>
               </div>
@@ -260,6 +223,53 @@
 
     <!-- Contenido principal -->
     <main class="container mx-auto p-4 lg:p-6">
+      <!-- Filtros y búsqueda -->
+      <section class="mb-6 slide-in">
+        <div class="glass-effect rounded-2xl p-6">
+          <div class="flex flex-col lg:flex-row gap-4">
+            <!-- Filtros por tipo -->
+            <div class="flex flex-wrap gap-2">
+              <button
+                onclick="filtrarTarjetas('all')"
+                class="filter-btn active px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium"
+                id="filter-all"
+              >
+                <span class="material-icons text-sm mr-1">view_list</span>
+                Todas
+              </button>
+              <button
+                onclick="filtrarTarjetas('debito')"
+                class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium"
+                id="filter-debito"
+              >
+                <!--   id="filter-income" -->
+                <span class="material-icons text-sm mr-1"
+                  >account_balance_wallet</span
+                >
+                Debito
+              </button>
+              <button
+                onclick="filtrarTarjetas('credito')"
+                class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium"
+                id="filter-credito"
+              >
+                <!--   id="filter-expense" -->
+                <span class="material-icons text-sm mr-1">credit_card</span>
+                Credito
+              </button>
+              <button
+                onclick="filtrarTarjetas('prepaga')"
+                class="filter-btn px-4 py-2 rounded-xl bg-gray-100 text-gray-700 text-sm font-medium"
+                id="filter-prepaga"
+              >
+                <!--   id="filter-transfer" -->
+                <span class="material-icons text-sm mr-1">wallet</span>
+                Prepaga
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
       <!-- Últimos movimientos -->
       <section class="slide-in">
         <div class="glass-effect rounded-2xl p-6">
@@ -276,29 +286,14 @@
               style="cursor: pointer"
               onclick="solicitarTarjeta()"
             >
-              <span class="material-icons mr-2 text-blue-600">add</span>
+              <span class="material-icons mr-2 text-blue-600">add_card</span>
               Solicitar nueva tarjeta
             </h3>
           </div>
 
           <div id="ultimosMovimientos" class="space-y-3">
-            <div
-              class="movement-item flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-all duration-300"
-              id="contenedor-detalle-tarjeta"
-            >
-              <div class="flex items-center space-x-4">
-                <div id="detalle-tarjeta">
-                  <p
-                    class="font-medium text-gray-800"
-                    id="detalle-tarjeta-tipo"
-                  ></p>
-                  <p
-                    class="text-sm text-gray-500"
-                    id="detalle-tarjeta-numero"
-                  ></p>
-                </div>
-              </div>
-            </div>
+            <!-- Este div será el contenedor padre donde se agregarán todas las tarjetas -->
+            <div id="contenedor-tarjetas" class="space-y-3"></div>
           </div>
         </div>
       </section>
