@@ -3,7 +3,7 @@
   const loadedComponents = {};
 
   components.forEach(id => {
-    fetch(`../components/${id}.html`)
+    fetch(`components/${id}.html`)
       .then(res => res.text())
       .then(html => {
         document.getElementById(`${id}-placeholder`).innerHTML = html;

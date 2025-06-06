@@ -199,8 +199,23 @@
       </nav>
     </div>
 
+     <!-- Saludo y navegación -->
+                <div class="flex-1 lg:flex lg:items-center lg:justify-between">
+                    <!-- Saludo personalizado -->
+                    <div class="flex items-center space-x-3 mb-4 lg:mb-0">
+                        <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                            <span class="material-icons text-white text-sm">person</span>
+                        </div>
+                        <div>
+                            <p class="text-sm font-medium text-gray-700">
+                                ¡Hola, <span id="userFullName" class="font-bold text-gray-900"></span>! 👋
+                            </p>
+                            <p class="text-xs text-gray-500" id="currentTime"></p>
+                        </div>
+                    </div>
+
     <!-- Saludo (solo en mobile) -->
-    <div id="userGreeting" class="lg:hidden mt-4 flex items-center space-x-3">
+    <!-- <div id="userGreeting" class="lg:hidden mt-4 flex items-center space-x-3">
       <div class="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
         <span class="material-icons text-white text-sm" aria-hidden="true">person</span>
       </div>
@@ -210,6 +225,6 @@
         </p>
         <p class="text-xs text-gray-500" id="currentTime" aria-live="polite"></p>
       </div>
-    </div>
+    </div> -->
   </div>
 </header>
