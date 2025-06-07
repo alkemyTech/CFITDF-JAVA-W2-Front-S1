@@ -327,7 +327,7 @@ function generarSeccionMoneda(titulo, cuentas, tipoMoneda, icono) {
     `;
 }
 
-// Función para generar HTML de una tarjeta de cuenta individual (ACTUALIZADA)
+// Función para generar HTML de una tarjeta de cuenta individual (SIN BOTÓN ELIMINAR)
 function generarTarjetaCuenta(cuenta, tipoMoneda) {
     const icono = getAccountIcon(cuenta.tipo, tipoMoneda);
     const color = getAccountColor(cuenta.tipo, tipoMoneda);
@@ -360,11 +360,7 @@ function generarTarjetaCuenta(cuenta, tipoMoneda) {
                             title="Ver resumen">
                         <span class="material-icons text-sm">analytics</span>
                     </button>
-                    <button onclick="eliminarCuenta(${cuenta.id})" 
-                            class="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors"
-                            title="Eliminar cuenta">
-                        <span class="material-icons text-sm">delete</span>
-                    </button>
+                    <!-- BOTÓN DE ELIMINAR REMOVIDO POR SEGURIDAD -->
                 </div>
             </div>
         </div>
@@ -496,36 +492,8 @@ function ocultarFormulario() {
     document.getElementById('form-section').classList.add('hidden');
 }
 
-function eliminarCuenta(id) {
-    Swal.fire({
-        title: '¿Estás seguro?',
-        text: 'Esta acción eliminará la cuenta permanentemente',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        cancelButtonColor: '#3085d6',
-        confirmButtonText: 'Sí, eliminar',
-        cancelButtonText: 'Cancelar'
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            try {
-                const res = await fetch(`http://localhost:8080/api/cuentas/${id}`, {
-                    method: "DELETE",
-                });
-
-                if (res.ok) {
-                    Swal.fire('Eliminada', 'La cuenta ha sido eliminada correctamente', 'success');
-                    cargarCuentas();
-                } else {
-                    throw new Error('Error en la respuesta del servidor');
-                }
-            } catch (error) {
-                console.error('Error al eliminar cuenta:', error);
-                Swal.fire('Error', 'No se pudo eliminar la cuenta', 'error');
-            }
-        }
-    });
-}
+// ❌ FUNCIÓN eliminarCuenta ELIMINADA POR SEGURIDAD
+// Esta función ha sido removida para prevenir eliminaciones accidentales de cuentas
 
 function logout() {
     Swal.fire({
@@ -550,10 +518,10 @@ function logout() {
     });
 }
 
-// Funciones globales para compatibilidad con el HTML
+// Funciones globales para compatibilidad con el HTML (SIN deleteAccount)
 window.showCreateForm = mostrarFormulario;
 window.hideForm = ocultarFormulario;
-window.deleteAccount = eliminarCuenta;
+// ❌ window.deleteAccount = eliminarCuenta; - ELIMINADO
 window.logout = logout;
 window.mostrarResumen = mostrarResumen;
 
