@@ -546,22 +546,7 @@
         });
     }
 
-    function deleteAccount(id) {
-        Swal.fire({
-            title: '¿Estás seguro?',
-            text: 'Esta acción no se puede deshacer',
-            icon: 'warning',
-            showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
-            confirmButtonText: 'Sí, eliminar',
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed) {
-                Swal.fire('Eliminado', 'La cuenta ha sido eliminada correctamente', 'success');
-            }
-        });
-    }
+    // FUNCIÓN deleteAccount ELIMINADA - Ya no se puede eliminar cuentas
 
     // Inicializar al cargar la página
         document.addEventListener('DOMContentLoaded', function() {
@@ -609,7 +594,7 @@
         document.getElementById('activeAccounts').textContent = cuentas.length;
     }
 
-    // Función para cargar cuentas (ejemplo)
+    // Función para cargar cuentas (ejemplo) - SIN BOTÓN DE ELIMINAR
     function loadAccounts() {
         const cuentas = [
             {
@@ -674,9 +659,7 @@
                             <button onclick="mostrarResumen(${cuenta.id})" class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors" title="Ver resumen">
                                 <span class="material-icons text-sm">analytics</span>
                             </button>
-                            <button onclick="deleteAccount(${cuenta.id})" class="text-red-600 hover:text-red-800 p-2 hover:bg-red-50 rounded-lg transition-colors" title="Eliminar cuenta">
-                                <span class="material-icons text-sm">delete</span>
-                            </button>
+                            <!-- BOTÓN DE ELIMINAR REMOVIDO -->
                         </div>
                     </div>
                 </div>
@@ -716,6 +699,25 @@
             loadAccounts();
         });
     });
+
+    // Función logout
+    function logout() {
+        Swal.fire({
+            title: '¿Cerrar sesión?',
+            text: 'Se cerrará tu sesión actual',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#3085d6',
+            confirmButtonText: 'Sí, cerrar sesión',
+            cancelButtonText: 'Cancelar'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                localStorage.clear();
+                window.location.href = 'index.html';
+            }
+        });
+    }
 
     // Inicialización
     updateTime();
