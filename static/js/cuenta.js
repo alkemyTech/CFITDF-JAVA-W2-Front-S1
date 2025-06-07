@@ -83,12 +83,14 @@ function getMonedaSymbol(moneda) {
     return simbolos[moneda] || '$';
 }
 
-// Función para mostrar el resumen de una cuenta
-function mostrarResumen(cuentaId) {
+// NUEVA FUNCIÓN: Mostrar movimientos de una cuenta específica
+function mostrarMovimientos(cuentaId) {
+    console.log('🎯 Solicitando movimientos para cuenta ID:', cuentaId);
+    
     // Mostrar indicador de carga
     Swal.fire({
-        title: 'Cargando resumen...',
-        html: '<div class="pulse-animation">Obteniendo datos de la cuenta</div>',
+        title: 'Cargando movimientos...',
+        html: `<div class="pulse-animation">Obteniendo historial de movimientos de la cuenta #${cuentaId}</div>`,
         allowOutsideClick: false,
         showConfirmButton: false,
         willOpen: () => {
@@ -96,119 +98,253 @@ function mostrarResumen(cuentaId) {
         }
     });
 
-    // Hacer llamada a la API
-    fetch(`http://localhost:8080/api/cuentas/${cuentaId}/resumen`)
+    // Hacer llamada a la API de movimientos con el ID de la cuenta específica
+    // Probamos diferentes endpoints posibles
+    const endpoints = [
+        `http://localhost:8080/api/movimientos/${cuentaId}`,
+        `http://localhost:8080/api/cuentas/${cuentaId}/movimientos`,
+        `http://localhost:8080/api/movimientos?cuentaId=${cuentaId}`
+    ];
+    
+    // Empezamos con el primer endpoint más probable
+    const endpointToUse = `http://localhost:8080/api/movimientos/${cuentaId}`;
+    console.log('📡 Llamando a endpoint:', endpointToUse);
+    
+    fetch(endpointToUse)
         .then(response => {
+            console.log('📡 Response status:', response.status);
+            console.log('📡 Response URL:', response.url);
+            
             if (!response.ok) {
+                // Si falla, intentar con endpoint alternativo
+                if (response.status === 404) {
+                    console.log('⚠️ Endpoint principal falló, intentando endpoint alternativo...');
+                    return fetch(`http://localhost:8080/api/cuentas/${cuentaId}/movimientos`);
+                }
                 throw new Error(`Error ${response.status}: ${response.statusText}`);
             }
             return response.json();
         })
-        .then(resumen => {
-            mostrarModalResumen(resumen, cuentaId);
+        .then(response => {
+            // Si la primera llamada falló y estamos en la segunda
+            if (response && typeof response.json === 'function') {
+                console.log('📡 Usando endpoint alternativo, status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`Error ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            }
+            return response;
+        })
+        .then(movimientos => {
+            console.log('📊 Movimientos obtenidos para cuenta', cuentaId, ':', movimientos);
+            
+            // Validar que la respuesta sea un array
+            if (!Array.isArray(movimientos)) {
+                console.warn('⚠️ La respuesta no es un array:', movimientos);
+                // Si la respuesta tiene una propiedad que contiene el array
+                if (movimientos.movimientos && Array.isArray(movimientos.movimientos)) {
+                    movimientos = movimientos.movimientos;
+                } else if (movimientos.data && Array.isArray(movimientos.data)) {
+                    movimientos = movimientos.data;
+                } else {
+                    movimientos = [];
+                }
+            }
+            
+            mostrarModalMovimientos(movimientos, cuentaId);
         })
         .catch(error => {
-            console.error('Error al obtener el resumen:', error);
+            console.error('❌ Error al obtener movimientos para cuenta', cuentaId, ':', error);
+            
+            // Mensaje de error más específico
+            let errorMessage = 'No se pudieron cargar los movimientos.';
+            
+            if (error.message.includes('404')) {
+                errorMessage = `No se encontraron movimientos para la cuenta #${cuentaId} o el endpoint no existe.`;
+            } else if (error.message.includes('500')) {
+                errorMessage = 'Error interno del servidor. Por favor, intenta nuevamente.';
+            } else if (error.message.includes('Failed to fetch')) {
+                errorMessage = 'Error de conexión. Verifica que el servidor esté ejecutándose.';
+            }
+            
             Swal.fire({
-                title: 'Error',
-                text: 'No se pudo obtener el resumen de la cuenta. Por favor, intenta nuevamente.',
+                title: 'Error al cargar movimientos',
+                html: `
+                    <div class="text-left">
+                        <p class="mb-2">${errorMessage}</p>
+                        <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                            <strong>Detalles técnicos:</strong><br>
+                            • Cuenta ID: ${cuentaId}<br>
+                            • Endpoint: ${endpointToUse}<br>
+                            • Error: ${error.message}
+                        </div>
+                    </div>
+                `,
                 icon: 'error',
                 confirmButtonText: 'Entendido',
-                confirmButtonColor: '#667eea'
+                confirmButtonColor: '#667eea',
+                footer: '<small>Revisa la consola del navegador para más detalles</small>'
             });
         });
 }
 
-// Función para mostrar el modal con el resumen
-function mostrarModalResumen(resumen, cuentaId) {
-    const monedaIcono = resumen.moneda === 'dolar_cripto' ? '₿' : 
-                       resumen.moneda === 'dolar_comun' ? '💵' : '💰';
+// NUEVA FUNCIÓN: Mostrar el modal con los movimientos
+function mostrarModalMovimientos(movimientos, cuentaId) {
+    console.log('🎯 Mostrando movimientos:', movimientos);
     
-    const htmlResumen = `
-        <div class="resumen-modal text-left">
-            <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4">
+    // Función para obtener el icono del tipo de movimiento
+    function getTipoMovimientoIcon(tipo) {
+        const iconos = {
+            'TRANSACCION': '💳',
+            'TRANSFERENCIA': '🔄',
+            'DEPOSITO': '⬇️',
+            'RETIRO': '⬆️',
+            'CARGA': '💰',
+            'PAGO': '🛒'
+        };
+        return iconos[tipo] || '📄';
+    }
+
+    // Función para obtener el color del tipo de movimiento
+    function getTipoMovimientoColor(tipo) {
+        const colores = {
+            'TRANSACCION': 'blue',
+            'TRANSFERENCIA': 'purple',
+            'DEPOSITO': 'green',
+            'RETIRO': 'red',
+            'CARGA': 'indigo',
+            'PAGO': 'orange'
+        };
+        return colores[tipo] || 'gray';
+    }
+
+    // Función para formatear fecha
+    function formatearFecha(fecha) {
+        try {
+            const fechaObj = new Date(fecha);
+            return fechaObj.toLocaleDateString('es-AR', {
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+            });
+        } catch (error) {
+            return fecha;
+        }
+    }
+
+    // Función para formatear monto con color
+    function formatearMontoConColor(monto) {
+        const valor = parseFloat(monto);
+        const isPositivo = valor >= 0;
+        const colorClass = isPositivo ? 'text-green-600' : 'text-red-600';
+        const signo = isPositivo ? '+' : '';
+        
+        return `<span class="${colorClass} font-bold">${signo}$${Math.abs(valor).toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>`;
+    }
+
+    if (!movimientos || movimientos.length === 0) {
+        const htmlVacio = `
+            <div class="text-center py-8">
+                <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span class="material-icons text-gray-400 text-3xl">receipt_long</span>
+                </div>
+                <h4 class="text-lg font-medium text-gray-600 mb-2">No hay movimientos</h4>
+                <p class="text-gray-500">Esta cuenta no tiene movimientos registrados</p>
+            </div>
+        `;
+
+        Swal.fire({
+            title: `Movimientos - Cuenta #${cuentaId}`,
+            html: htmlVacio,
+            width: '700px',
+            showCloseButton: true,
+            showConfirmButton: true,
+            confirmButtonText: 'Cerrar',
+            confirmButtonColor: '#667eea',
+            customClass: {
+                popup: 'rounded-xl'
+            }
+        });
+        return;
+    }
+
+    // Ordenar movimientos por fecha (más recientes primero)
+    const movimientosOrdenados = movimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+    // Generar HTML para los movimientos
+    const htmlMovimientos = `
+        <div class="movimientos-modal text-left max-h-96 overflow-y-auto">
+            <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4 sticky top-0 z-10">
                 <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
-                    <span class="material-icons mr-2 text-blue-600">analytics</span>
-                    Resumen de la Cuenta #${cuentaId}
-                    <span class="ml-2 text-2xl">${monedaIcono}</span>
+                    <span class="material-icons mr-2 text-blue-600">receipt_long</span>
+                    Historial de Movimientos - Cuenta #${cuentaId}
                 </h3>
+                <p class="text-sm text-gray-600">Total de movimientos: ${movimientos.length}</p>
             </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div class="bg-green-50 p-4 rounded-lg">
-                    <div class="flex items-center mb-2">
-                        <span class="material-icons text-green-600 mr-2">trending_up</span>
-                        <h4 class="font-semibold text-green-800">Ingresos</h4>
-                    </div>
-                    <p class="text-2xl font-bold text-green-600">${formatearSaldo(resumen.totalDepositado || 0, resumen.moneda || 'peso')}</p>
-                    <p class="text-sm text-green-700">Total depositado</p>
-                </div>
-                
-                <div class="bg-red-50 p-4 rounded-lg">
-                    <div class="flex items-center mb-2">
-                        <span class="material-icons text-red-600 mr-2">trending_down</span>
-                        <h4 class="font-semibold text-red-800">Egresos</h4>
-                    </div>
-                    <p class="text-2xl font-bold text-red-600">${formatearSaldo(resumen.totalExtraido || 0, resumen.moneda || 'peso')}</p>
-                    <p class="text-sm text-red-700">Total extraído</p>
-                </div>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                <div class="bg-blue-50 p-4 rounded-lg">
-                    <div class="flex items-center mb-2">
-                        <span class="material-icons text-blue-600 mr-2">swap_horiz</span>
-                        <h4 class="font-semibold text-blue-800">Transferencias</h4>
-                    </div>
-                    <p class="text-2xl font-bold text-blue-600">${formatearSaldo(resumen.totalTransferido || 0, resumen.moneda || 'peso')}</p>
-                    <p class="text-sm text-blue-700">Total transferido</p>
-                </div>
-                
-                <div class="bg-purple-50 p-4 rounded-lg">
-                    <div class="flex items-center mb-2">
-                        <span class="material-icons text-purple-600 mr-2">receipt</span>
-                        <h4 class="font-semibold text-purple-800">Transacciones</h4>
-                    </div>
-                    <p class="text-2xl font-bold text-purple-600">${resumen.cantidadTransacciones || 0}</p>
-                    <p class="text-sm text-purple-700">Total de operaciones</p>
-                </div>
-            </div>
-            
-            ${resumen.tipoUltimaTransaccion ? `
-                <div class="bg-gray-50 p-4 rounded-lg">
-                    <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
-                        <span class="material-icons mr-2 text-gray-600">history</span>
-                        Última Transacción
-                    </h4>
-                    <div class="space-y-2">
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Tipo:</span>
-                            <span class="font-medium capitalize">${resumen.tipoUltimaTransaccion}</span>
-                        </div>
-                        <div class="flex justify-between">
-                            <span class="text-gray-600">Monto:</span>
-                            <span class="font-medium">${formatearSaldo(resumen.montoUltimaTransaccion || 0, resumen.moneda || 'peso')}</span>
-                        </div>
-                        ${resumen.descripcionUltimaTransaccion ? `
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Descripción:</span>
-                                <span class="font-medium">${resumen.descripcionUltimaTransaccion}</span>
+            <div class="space-y-3">
+                ${movimientosOrdenados.map((movimiento, index) => `
+                    <div class="movement-item bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-10 h-10 bg-${getTipoMovimientoColor(movimiento.tipoMovimiento)}-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                    <span class="text-lg">${getTipoMovimientoIcon(movimiento.tipoMovimiento)}</span>
+                                </div>
+                                <div class="min-w-0 flex-1">
+                                    <div class="flex items-center space-x-2 mb-1">
+                                        <h4 class="text-sm font-semibold text-gray-800">${movimiento.tipoMovimiento.replace('_', ' ')}</h4>
+                                        <span class="text-xs bg-${getTipoMovimientoColor(movimiento.tipoMovimiento)}-100 text-${getTipoMovimientoColor(movimiento.tipoMovimiento)}-700 px-2 py-1 rounded-full">
+                                            #${index + 1}
+                                        </span>
+                                    </div>
+                                    <p class="text-xs text-gray-600 mb-1">${movimiento.descripcion || 'Sin descripción'}</p>
+                                    <p class="text-xs text-gray-500">📅 ${formatearFecha(movimiento.fecha)}</p>
+                                </div>
                             </div>
-                        ` : ''}
+                            <div class="text-right">
+                                <div class="text-lg font-bold">
+                                    ${formatearMontoConColor(movimiento.monto)}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('')}
+            </div>
+
+            <!-- Resumen al final -->
+            <div class="bg-gray-50 rounded-lg p-4 mt-4 sticky bottom-0">
+                <h4 class="font-semibold text-gray-800 mb-2 flex items-center">
+                    <span class="material-icons mr-2 text-gray-600">analytics</span>
+                    Resumen de movimientos
+                </h4>
+                <div class="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                        <span class="text-gray-600">Ingresos:</span>
+                        <span class="font-bold text-green-600">
+                            $${movimientos
+                                .filter(m => parseFloat(m.monto) > 0)
+                                .reduce((sum, m) => sum + parseFloat(m.monto), 0)
+                                .toLocaleString('es-AR', {minimumFractionDigits: 2})}
+                        </span>
+                    </div>
+                    <div>
+                        <span class="text-gray-600">Egresos:</span>
+                        <span class="font-bold text-red-600">
+                            $${Math.abs(movimientos
+                                .filter(m => parseFloat(m.monto) < 0)
+                                .reduce((sum, m) => sum + parseFloat(m.monto), 0))
+                                .toLocaleString('es-AR', {minimumFractionDigits: 2})}
+                        </span>
                     </div>
                 </div>
-            ` : `
-                <div class="bg-gray-50 p-4 rounded-lg text-center">
-                    <span class="material-icons text-gray-400 text-3xl mb-2">inbox</span>
-                    <p class="text-gray-600">No hay transacciones registradas</p>
-                </div>
-            `}
+            </div>
         </div>
     `;
 
     Swal.fire({
-        html: htmlResumen,
-        width: '650px',
+        html: htmlMovimientos,
+        width: '750px',
         showCloseButton: true,
         showConfirmButton: true,
         confirmButtonText: 'Cerrar',
@@ -327,11 +463,20 @@ function generarSeccionMoneda(titulo, cuentas, tipoMoneda, icono) {
     `;
 }
 
-// Función para generar HTML de una tarjeta de cuenta individual (SIN BOTÓN ELIMINAR)
+// Función para generar HTML de una tarjeta de cuenta individual (ACTUALIZADA - SIN USUARIO ID)
 function generarTarjetaCuenta(cuenta, tipoMoneda) {
     const icono = getAccountIcon(cuenta.tipo, tipoMoneda);
     const color = getAccountColor(cuenta.tipo, tipoMoneda);
-    const usuarioId = getUserId(); // Obtener dinámicamente
+    
+    // Función para obtener el nombre de la moneda en español
+    function getNombreMoneda(moneda) {
+        const nombres = {
+            'peso': 'Peso',
+            'dolar_comun': 'Dólares',
+            'dolar_cripto': 'Cripto'
+        };
+        return nombres[moneda] || 'Peso';
+    }
     
     return `
         <div class="account-item bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
@@ -344,21 +489,20 @@ function generarTarjetaCuenta(cuenta, tipoMoneda) {
                         <div class="flex items-center space-x-2 mb-1">
                             <h4 class="text-lg font-semibold text-gray-800 capitalize">${cuenta.tipo}</h4>
                             <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">#${cuenta.id}</span>
-                            <span class="text-xs bg-${color}-100 text-${color}-700 px-2 py-1 rounded-full capitalize">
-                                ${tipoMoneda.replace('_', ' ')}
+                            <span class="text-xs bg-${color}-100 text-${color}-700 px-2 py-1 rounded-full">
+                                ${getNombreMoneda(tipoMoneda)}
                             </span>
                         </div>
-                        <p class="text-sm text-gray-500">Usuario ID: ${cuenta.usuarioId || usuarioId}</p>
                         <p class="text-2xl font-bold text-${color}-600 mt-2">
                             ${formatearSaldo(cuenta.saldo, tipoMoneda)}
                         </p>
                     </div>
                 </div>
                 <div class="flex flex-col space-y-2">
-                    <button onclick="mostrarResumen(${cuenta.id})" 
+                    <button onclick="mostrarMovimientos(${cuenta.id})" 
                             class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors"
-                            title="Ver resumen">
-                        <span class="material-icons text-sm">analytics</span>
+                            title="Ver movimientos">
+                        <span class="material-icons text-sm">receipt_long</span>
                     </button>
                     <!-- BOTÓN DE ELIMINAR REMOVIDO POR SEGURIDAD -->
                 </div>
@@ -492,9 +636,6 @@ function ocultarFormulario() {
     document.getElementById('form-section').classList.add('hidden');
 }
 
-// ❌ FUNCIÓN eliminarCuenta ELIMINADA POR SEGURIDAD
-// Esta función ha sido removida para prevenir eliminaciones accidentales de cuentas
-
 function logout() {
     Swal.fire({
         title: '¿Cerrar sesión?',
@@ -518,12 +659,11 @@ function logout() {
     });
 }
 
-// Funciones globales para compatibilidad con el HTML (SIN deleteAccount)
+// Funciones globales para compatibilidad con el HTML (ACTUALIZADA CON MOVIMIENTOS)
 window.showCreateForm = mostrarFormulario;
 window.hideForm = ocultarFormulario;
-// ❌ window.deleteAccount = eliminarCuenta; - ELIMINADO
 window.logout = logout;
-window.mostrarResumen = mostrarResumen;
+window.mostrarMovimientos = mostrarMovimientos; // NUEVA FUNCIÓN GLOBAL
 
 // Inicialización cuando se carga el DOM (ACTUALIZADA)
 document.addEventListener("DOMContentLoaded", () => {

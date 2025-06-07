@@ -26,9 +26,8 @@
   <!-- Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-
     <style>
-        b body {
+        body {
             font-family: 'Inter', sans-serif;
         }
 
@@ -153,24 +152,6 @@
             background: rgba(102, 126, 234, 0.05);
         }
 
-        .floating-animation {
-            animation: float 6s ease-in-out infinite;
-        }
-
-        @keyframes float {
-            0%, 100% { transform: translateY(0px); }
-            50% { transform: translateY(-5px); }
-        }
-
-        .slide-in {
-            animation: slideIn 0.5s ease-out;
-        }
-
-        @keyframes slideIn {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
         .amount-card {
             transition: all 0.3s ease;
             cursor: pointer;
@@ -212,27 +193,6 @@
             box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
         }
 
-        .nav-item {
-            position: relative;
-            transition: all 0.3s ease;
-        }
-
-        .nav-item:after {
-            content: '';
-            position: absolute;
-            width: 0;
-            height: 2px;
-            bottom: -4px;
-            left: 50%;
-            background: linear-gradient(90deg, #667eea, #764ba2);
-            transition: all 0.3s ease;
-            transform: translateX(-50%);
-        }
-
-        .nav-item:hover:after {
-            width: 100%;
-        }
-
         .progress-step {
             transition: all 0.3s ease;
         }
@@ -245,6 +205,36 @@
         .progress-step.completed {
             background: #10b981;
             color: white;
+        }
+
+        /* Estilos para el modal de movimientos */
+        .movimientos-modal .movement-item {
+            border-left: 4px solid transparent;
+            transition: all 0.2s ease;
+        }
+
+        .movimientos-modal .movement-item:hover {
+            border-left-color: #667eea;
+            transform: translateX(2px);
+        }
+
+        /* Scrollbar personalizado para el modal */
+        .movimientos-modal::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .movimientos-modal::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+
+        .movimientos-modal::-webkit-scrollbar-thumb {
+            background: #667eea;
+            border-radius: 10px;
+        }
+
+        .movimientos-modal::-webkit-scrollbar-thumb:hover {
+            background: #5a67d8;
         }
     </style>
 </head>
@@ -259,7 +249,7 @@
     <section class="mb-8 slide-in">
         <div class="text-center mb-8">
             <h2 class="text-3xl font-bold text-gray-800 mb-2">Gestión de Cuentas</h2>
-            <p class="text-gray-600">Administra tus cuentas bancarias y de inversión</p>
+            <p class="text-gray-600">Administra tus cuentas bancarias y visualiza tus movimientos</p>
         </div>
     </section>
 
@@ -385,7 +375,6 @@
    <!-- Footer Placeholder -->
   <div id="footer-placeholder" class="mt-8"></div>
 
-
     <!-- Script para funcionalidad básica -->
      <script src="js/header.js"></script>
      <script src="js/loader.js"></script>
@@ -402,7 +391,10 @@
             hour: '2-digit',
             minute: '2-digit'
         });
-        document.getElementById('currentTime').textContent = timeString;
+        const timeElement = document.getElementById('currentTime');
+        if (timeElement) {
+            timeElement.textContent = timeString;
+        }
     }
 
     // Funciones para el formulario
@@ -417,11 +409,13 @@
         document.getElementById('form-section').classList.add('hidden');
     }
 
-    // Función para mostrar el resumen de una cuenta
-    function mostrarResumen(cuentaId) {
+    // FUNCIÓN ACTUALIZADA: mostrarMovimientos con ID de cuenta específico
+    function mostrarMovimientos(cuentaId) {
+        console.log('🎯 Solicitando movimientos para cuenta ID:', cuentaId);
+        
         Swal.fire({
-            title: 'Cargando resumen...',
-            html: '<div class="pulse-animation">Obteniendo datos de la cuenta</div>',
+            title: 'Cargando movimientos...',
+            html: `<div class="pulse-animation">Obteniendo historial de movimientos de la cuenta #${cuentaId}</div>`,
             allowOutsideClick: false,
             showConfirmButton: false,
             willOpen: () => {
@@ -429,140 +423,232 @@
             }
         });
 
-        fetch(`http://localhost:8080/api/cuentas/${cuentaId}/resumen`)
+        // Endpoint específico para la cuenta
+        const endpointToUse = `http://localhost:8080/api/movimientos/${cuentaId}`;
+        console.log('📡 Llamando a endpoint:', endpointToUse);
+
+        fetch(endpointToUse)
             .then(response => {
+                console.log('📡 Response status:', response.status);
                 if (!response.ok) {
+                    // Si falla, intentar con endpoint alternativo
+                    if (response.status === 404) {
+                        console.log('⚠️ Endpoint principal falló, intentando endpoint alternativo...');
+                        return fetch(`http://localhost:8080/api/cuentas/${cuentaId}/movimientos`);
+                    }
                     throw new Error(`Error ${response.status}: ${response.statusText}`);
                 }
                 return response.json();
             })
-            .then(resumen => {
-                mostrarModalResumen(resumen, cuentaId);
+            .then(response => {
+                // Si la primera llamada falló y estamos en la segunda
+                if (response && typeof response.json === 'function') {
+                    console.log('📡 Usando endpoint alternativo, status:', response.status);
+                    if (!response.ok) {
+                        throw new Error(`Error ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                }
+                return response;
+            })
+            .then(movimientos => {
+                console.log('📊 Movimientos obtenidos para cuenta', cuentaId, ':', movimientos);
+                
+                // Validar que la respuesta sea un array
+                if (!Array.isArray(movimientos)) {
+                    console.warn('⚠️ La respuesta no es un array:', movimientos);
+                    if (movimientos.movimientos && Array.isArray(movimientos.movimientos)) {
+                        movimientos = movimientos.movimientos;
+                    } else if (movimientos.data && Array.isArray(movimientos.data)) {
+                        movimientos = movimientos.data;
+                    } else {
+                        movimientos = [];
+                    }
+                }
+                
+                mostrarModalMovimientos(movimientos, cuentaId);
             })
             .catch(error => {
-                console.error('Error al obtener el resumen:', error);
+                console.error('❌ Error al obtener movimientos para cuenta', cuentaId, ':', error);
+                
+                let errorMessage = 'No se pudieron cargar los movimientos.';
+                
+                if (error.message.includes('404')) {
+                    errorMessage = `No se encontraron movimientos para la cuenta #${cuentaId} o el endpoint no existe.`;
+                } else if (error.message.includes('500')) {
+                    errorMessage = 'Error interno del servidor. Por favor, intenta nuevamente.';
+                } else if (error.message.includes('Failed to fetch')) {
+                    errorMessage = 'Error de conexión. Verifica que el servidor esté ejecutándose.';
+                }
+                
                 Swal.fire({
-                    title: 'Error',
-                    text: 'No se pudo obtener el resumen de la cuenta. Por favor, intenta nuevamente.',
+                    title: 'Error al cargar movimientos',
+                    html: `
+                        <div class="text-left">
+                            <p class="mb-2">${errorMessage}</p>
+                            <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded">
+                                <strong>Detalles técnicos:</strong><br>
+                                • Cuenta ID: ${cuentaId}<br>
+                                • Endpoint: ${endpointToUse}<br>
+                                • Error: ${error.message}
+                            </div>
+                        </div>
+                    `,
                     icon: 'error',
-                    confirmButtonText: 'Entendido'
+                    confirmButtonText: 'Entendido',
+                    confirmButtonColor: '#667eea'
                 });
             });
     }
 
-    // Función para mostrar el modal con el resumen
-    function mostrarModalResumen(resumen, cuentaId) {
-        const htmlResumen = `
-            <div class="text-left">
-                <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4">
+    // NUEVA FUNCIÓN: Mostrar el modal con los movimientos
+    function mostrarModalMovimientos(movimientos, cuentaId) {
+        // Función para obtener el icono del tipo de movimiento
+        function getTipoMovimientoIcon(tipo) {
+            const iconos = {
+                'TRANSACCION': '💳',
+                'TRANSFERENCIA': '🔄',
+                'DEPOSITO': '⬇️',
+                'RETIRO': '⬆️',
+                'CARGA': '💰',
+                'PAGO': '🛒'
+            };
+            return iconos[tipo] || '📄';
+        }
+
+        // Función para formatear fecha
+        function formatearFecha(fecha) {
+            try {
+                const fechaObj = new Date(fecha);
+                return fechaObj.toLocaleDateString('es-AR', {
+                    day: '2-digit',
+                    month: '2-digit',
+                    year: 'numeric'
+                });
+            } catch (error) {
+                return fecha;
+            }
+        }
+
+        // Función para formatear monto con color
+        function formatearMontoConColor(monto) {
+            const valor = parseFloat(monto);
+            const isPositivo = valor >= 0;
+            const colorClass = isPositivo ? 'text-green-600' : 'text-red-600';
+            const signo = isPositivo ? '+' : '';
+            
+            return `<span class="${colorClass} font-bold">${signo}$${Math.abs(valor).toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>`;
+        }
+
+        if (!movimientos || movimientos.length === 0) {
+            const htmlVacio = `
+                <div class="text-center py-8">
+                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <span class="material-icons text-gray-400 text-3xl">receipt_long</span>
+                    </div>
+                    <h4 class="text-lg font-medium text-gray-600 mb-2">No hay movimientos</h4>
+                    <p class="text-gray-500">Esta cuenta no tiene movimientos registrados</p>
+                </div>
+            `;
+
+            Swal.fire({
+                title: `Movimientos - Cuenta #${cuentaId}`,
+                html: htmlVacio,
+                width: '700px',
+                showCloseButton: true,
+                showConfirmButton: true,
+                confirmButtonText: 'Cerrar',
+                confirmButtonColor: '#667eea'
+            });
+            return;
+        }
+
+        // Ordenar movimientos por fecha (más recientes primero)
+        const movimientosOrdenados = movimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+
+        // Generar HTML para los movimientos
+        const htmlMovimientos = `
+            <div class="movimientos-modal text-left max-h-96 overflow-y-auto">
+                <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4 sticky top-0 z-10">
                     <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
-                        <span class="material-icons mr-2 text-blue-600">analytics</span>
-                        Resumen de la Cuenta #${cuentaId}
+                        <span class="material-icons mr-2 text-blue-600">receipt_long</span>
+                        Historial de Movimientos - Cuenta #${cuentaId}
                     </h3>
+                    <p class="text-sm text-gray-600">Total de movimientos: ${movimientos.length}</p>
                 </div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div class="bg-green-50 p-4 rounded-lg">
-                        <div class="flex items-center mb-2">
-                            <span class="material-icons text-green-600 mr-2">trending_up</span>
-                            <h4 class="font-semibold text-green-800">Ingresos</h4>
-                        </div>
-                        <p class="text-2xl font-bold text-green-600">$${(resumen.totalDepositado || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                        <p class="text-sm text-green-700">Total depositado</p>
-                    </div>
-                    
-                    <div class="bg-red-50 p-4 rounded-lg">
-                        <div class="flex items-center mb-2">
-                            <span class="material-icons text-red-600 mr-2">trending_down</span>
-                            <h4 class="font-semibold text-red-800">Egresos</h4>
-                        </div>
-                        <p class="text-2xl font-bold text-red-600">$${(resumen.totalExtraido || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                        <p class="text-sm text-red-700">Total extraído</p>
-                    </div>
-                </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                    <div class="bg-blue-50 p-4 rounded-lg">
-                        <div class="flex items-center mb-2">
-                            <span class="material-icons text-blue-600 mr-2">swap_horiz</span>
-                            <h4 class="font-semibold text-blue-800">Transferencias</h4>
-                        </div>
-                        <p class="text-2xl font-bold text-blue-600">$${(resumen.totalTransferido || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
-                        <p class="text-sm text-blue-700">Total transferido</p>
-                    </div>
-                    
-                    <div class="bg-purple-50 p-4 rounded-lg">
-                        <div class="flex items-center mb-2">
-                            <span class="material-icons text-purple-600 mr-2">receipt</span>
-                            <h4 class="font-semibold text-purple-800">Transacciones</h4>
-                        </div>
-                        <p class="text-2xl font-bold text-purple-600">${resumen.cantidadTransacciones || 0}</p>
-                        <p class="text-sm text-purple-700">Total de operaciones</p>
-                    </div>
-                </div>
-                
-                ${resumen.tipoUltimaTransaccion ? `
-                    <div class="bg-gray-50 p-4 rounded-lg">
-                        <h4 class="font-semibold text-gray-800 mb-3 flex items-center">
-                            <span class="material-icons mr-2 text-gray-600">history</span>
-                            Última Transacción
-                        </h4>
-                        <div class="space-y-2">
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Tipo:</span>
-                                <span class="font-medium capitalize">${resumen.tipoUltimaTransaccion}</span>
-                            </div>
-                            <div class="flex justify-between">
-                                <span class="text-gray-600">Monto:</span>
-                                <span class="font-medium">$${(resumen.montoUltimaTransaccion || 0).toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>
-                            </div>
-                            ${resumen.descripcionUltimaTransaccion ? `
-                                <div class="flex justify-between">
-                                    <span class="text-gray-600">Descripción:</span>
-                                    <span class="font-medium">${resumen.descripcionUltimaTransaccion}</span>
+                <div class="space-y-3">
+                    ${movimientosOrdenados.map((movimiento, index) => `
+                        <div class="movement-item bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center space-x-3">
+                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                        <span class="text-lg">${getTipoMovimientoIcon(movimiento.tipoMovimiento)}</span>
+                                    </div>
+                                    <div class="min-w-0 flex-1">
+                                        <div class="flex items-center space-x-2 mb-1">
+                                            <h4 class="text-sm font-semibold text-gray-800">${movimiento.tipoMovimiento.replace('_', ' ')}</h4>
+                                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
+                                                #${index + 1}
+                                            </span>
+                                        </div>
+                                        <p class="text-xs text-gray-600 mb-1">${movimiento.descripcion || 'Sin descripción'}</p>
+                                        <p class="text-xs text-gray-500">📅 ${formatearFecha(movimiento.fecha)}</p>
+                                    </div>
                                 </div>
-                            ` : ''}
+                                <div class="text-right">
+                                    <div class="text-lg font-bold">
+                                        ${formatearMontoConColor(movimiento.monto)}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <!-- Resumen al final -->
+                <div class="bg-gray-50 rounded-lg p-4 mt-4 sticky bottom-0">
+                    <h4 class="font-semibold text-gray-800 mb-2 flex items-center">
+                        <span class="material-icons mr-2 text-gray-600">analytics</span>
+                        Resumen de movimientos
+                    </h4>
+                    <div class="grid grid-cols-2 gap-4 text-sm">
+                        <div>
+                            <span class="text-gray-600">Ingresos:</span>
+                            <span class="font-bold text-green-600">
+                                $${movimientos
+                                    .filter(m => parseFloat(m.monto) > 0)
+                                    .reduce((sum, m) => sum + parseFloat(m.monto), 0)
+                                    .toLocaleString('es-AR', {minimumFractionDigits: 2})}
+                            </span>
+                        </div>
+                        <div>
+                            <span class="text-gray-600">Egresos:</span>
+                            <span class="font-bold text-red-600">
+                                $${Math.abs(movimientos
+                                    .filter(m => parseFloat(m.monto) < 0)
+                                    .reduce((sum, m) => sum + parseFloat(m.monto), 0))
+                                    .toLocaleString('es-AR', {minimumFractionDigits: 2})}
+                            </span>
                         </div>
                     </div>
-                ` : `
-                    <div class="bg-gray-50 p-4 rounded-lg text-center">
-                        <span class="material-icons text-gray-400 text-3xl mb-2">inbox</span>
-                        <p class="text-gray-600">No hay transacciones registradas</p>
-                    </div>
-                `}
+                </div>
             </div>
         `;
 
         Swal.fire({
-            html: htmlResumen,
-            width: '600px',
+            html: htmlMovimientos,
+            width: '750px',
             showCloseButton: true,
             showConfirmButton: true,
             confirmButtonText: 'Cerrar',
             confirmButtonColor: '#667eea',
             customClass: {
-                popup: 'rounded-xl'
+                popup: 'rounded-xl',
+                content: 'p-0'
             }
         });
     }
-
-    // FUNCIÓN deleteAccount ELIMINADA - Ya no se puede eliminar cuentas
-
-    // Inicializar al cargar la página
-        document.addEventListener('DOMContentLoaded', function() {
-            updateTime();
-            setInterval(updateTime, 60000); // Actualizar cada minuto
-
-            // Obtener el nombre y apellido del usuario del localStorage
-            const nombreUsuario = localStorage.getItem('nombreUsuario');
-            const apellidoUsuario = localStorage.getItem('apellidoUsuario');
-            
-            if (nombreUsuario && apellidoUsuario) {
-                document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
-            } else {
-                document.getElementById('userFullName').textContent = 'Usuario'; // Nombre por defecto si no hay
-            }
-        });
 
     // Función para actualizar las estadísticas de balance separadas por moneda
     function updateBalanceStats(cuentas) {
@@ -594,15 +680,13 @@
         document.getElementById('activeAccounts').textContent = cuentas.length;
     }
 
-    // Función para cargar cuentas (ejemplo) - SIN BOTÓN DE ELIMINAR
+    // Función para cargar cuentas (ejemplo) - CON BOTÓN DE MOVIMIENTOS Y SIN USUARIO ID
     function loadAccounts() {
         const cuentas = [
             {
                 id: 1,
                 tipo: 'ahorro',
                 saldo: 125000.50,
-                usuario: 'Melina Rodriguez',
-                numero: '**** 4567',
                 icono: '💰',
                 color: 'blue',
                 moneda: 'peso'
@@ -611,8 +695,6 @@
                 id: 2,
                 tipo: 'corriente',
                 saldo: 89750.25,
-                usuario: 'Melina Rodriguez',
-                numero: '**** 8901',
                 icono: '🏦',
                 color: 'green',
                 moneda: 'peso'
@@ -621,8 +703,6 @@
                 id: 3,
                 tipo: 'ahorro',
                 saldo: 5500.00,
-                usuario: 'Melina Rodriguez',
-                numero: '**** 1234',
                 icono: '💵',
                 color: 'green',
                 moneda: 'dolar_comun'
@@ -637,6 +717,16 @@
             return;
         }
 
+        // Función para obtener el nombre de la moneda en español
+        function getNombreMoneda(moneda) {
+            const nombres = {
+                'peso': 'Peso',
+                'dolar_comun': 'Dólares',
+                'dolar_cripto': 'Cripto'
+            };
+            return nombres[moneda] || 'Peso';
+        }
+
         listaCuentas.innerHTML = cuentas.map(cuenta => `
             <div class="account-item bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
                 <div class="flex items-center justify-between">
@@ -645,21 +735,21 @@
                             ${cuenta.icono}
                         </div>
                         <div>
-                            <h4 class="text-lg font-semibold text-gray-800 capitalize">${cuenta.tipo}</h4>
-                            <p class="text-sm text-gray-500">${cuenta.numero}</p>
-                            <p class="text-xs text-gray-400">${cuenta.usuario}</p>
-                            ${cuenta.moneda !== 'peso' ? `<span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">${cuenta.moneda === 'dolar_comun' ? 'USD' : 'Cripto'}</span>` : ''}
+                            <div class="flex items-center space-x-2 mb-1">
+                                <h4 class="text-lg font-semibold text-gray-800 capitalize">${cuenta.tipo}</h4>
+                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">#${cuenta.id}</span>
+                                <span class="text-xs bg-${cuenta.color}-100 text-${cuenta.color}-700 px-2 py-1 rounded-full">${getNombreMoneda(cuenta.moneda)}</span>
+                            </div>
+                            <p class="text-2xl font-bold text-${cuenta.color}-600 mt-2">
+                                ${cuenta.moneda === 'dolar_comun' ? 'US$' : cuenta.moneda === 'dolar_cripto' ? '₿' : '$'}${cuenta.saldo.toLocaleString('es-AR', {minimumFractionDigits: 2})}
+                            </p>
                         </div>
                     </div>
                     <div class="text-right">
-                        <p class="text-2xl font-bold text-${cuenta.color}-600">
-                            ${cuenta.moneda === 'dolar_comun' ? 'US$' : cuenta.moneda === 'dolar_cripto' ? '₿' : '$'}${cuenta.saldo.toLocaleString('es-AR', {minimumFractionDigits: 2})}
-                        </p>
                         <div class="flex space-x-2 mt-2">
-                            <button onclick="mostrarResumen(${cuenta.id})" class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors" title="Ver resumen">
-                                <span class="material-icons text-sm">analytics</span>
+                            <button onclick="mostrarMovimientos(${cuenta.id})" class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors" title="Ver movimientos">
+                                <span class="material-icons text-sm">receipt_long</span>
                             </button>
-                            <!-- BOTÓN DE ELIMINAR REMOVIDO -->
                         </div>
                     </div>
                 </div>
@@ -718,6 +808,25 @@
             }
         });
     }
+
+    // Inicializar al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        updateTime();
+        setInterval(updateTime, 60000); // Actualizar cada minuto
+
+        // Obtener el nombre y apellido del usuario del localStorage
+        const nombreUsuario = localStorage.getItem('nombreUsuario');
+        const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+        const userFullNameElement = document.getElementById('userFullName');
+        
+        if (userFullNameElement) {
+            if (nombreUsuario && apellidoUsuario) {
+                userFullNameElement.textContent = `${nombreUsuario} ${apellidoUsuario}`;
+            } else {
+                userFullNameElement.textContent = 'Usuario';
+            }
+        }
+    });
 
     // Inicialización
     updateTime();
