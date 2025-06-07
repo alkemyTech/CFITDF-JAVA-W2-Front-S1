@@ -3,40 +3,63 @@ let userAccounts = []; // Array para almacenar las cuentas del usuario
 
 // Función para obtener el ID del usuario desde localStorage
 function getUserId() {
-    const usuarioId = localStorage.getItem('usuarioId') || localStorage.getItem('cuentaIds');
+    // Intentar diferentes claves que podrían estar en localStorage
+    const usuarioId = localStorage.getItem('usuarioId') || 
+                     localStorage.getItem('cuentaIds') ||
+                     localStorage.getItem('userId') ||
+                     localStorage.getItem('id');
+    
     console.log('🔍 ID de usuario obtenido del localStorage:', usuarioId);
+    console.log('🔍 Todos los items en localStorage:', { ...localStorage });
+    
     return usuarioId;
 }
 
-// Función de debug (actualizada para usar localStorage)
+// Función de debug mejorada
 function debugInfo() {
     const usuarioId = getUserId();
     console.log('=== DEBUG INFO ===');
     console.log('usuarioId desde localStorage:', usuarioId);
-    console.log('Todos los items en localStorage:', localStorage);
+    console.log('Todos los items en localStorage:');
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        const value = localStorage.getItem(key);
+        console.log(`  ${key}: ${value}`);
+    }
     console.log('userAccounts array:', userAccounts);
     console.log('=================');
     
     if (usuarioId) {
         // Prueba de API usando el endpoint correcto
+        console.log('🔄 Probando API...');
         fetch(`http://localhost:8080/api/cuentas/usuario/${usuarioId}`)
             .then(response => {
                 console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
                 return response.json();
             })
             .then(data => {
-                console.log('Data from API (array directo de cuentas):', data);
+                console.log('✅ Data from API (array directo de cuentas):', data);
                 console.log('Es un array?', Array.isArray(data));
                 if (Array.isArray(data) && data.length > 0) {
                     console.log('Primera cuenta:', data[0]);
                     console.log('Campos disponibles:', Object.keys(data[0]));
+                } else {
+                    console.warn('⚠️ El array está vacío o no es válido');
                 }
             })
             .catch(error => {
-                console.error('Error en API:', error);
+                console.error('❌ Error en API:', error);
             });
     } else {
         console.warn('⚠️ No hay usuarioId en localStorage');
+        console.log('📋 Claves disponibles en localStorage:');
+        for (let i = 0; i < localStorage.length; i++) {
+            console.log(`  - ${localStorage.key(i)}`);
+        }
     }
 }
 
@@ -54,50 +77,27 @@ function updateCurrentTime() {
         hour: '2-digit',
         minute: '2-digit'
     });
-    document.getElementById('currentTime').textContent = timeString;
+    
+    const timeElement = document.getElementById('currentTime');
+    if (timeElement) {
+        timeElement.textContent = timeString;
+    }
 }
 
-// // Función logout
-// function logout() {
-//     Swal.fire({
-//         title: '¿Cerrar sesión?',
-//         text: 'Se cerrará tu sesión actual',
-//         icon: 'question',
-//         showCancelButton: true,
-//         confirmButtonColor: '#d33',
-//         cancelButtonColor: '#3085d6',
-//         confirmButtonText: 'Sí, cerrar sesión',
-//         cancelButtonText: 'Cancelar'
-//     }).then((result) => {
-//         if (result.isConfirmed) {
-//             // Limpiar el localStorage
-//             localStorage.removeItem('usuarioId');
-//             localStorage.removeItem('nombreUsuario');
-//             localStorage.removeItem('apellidoUsuario');
-//             localStorage.removeItem('RolUsuario');
-//             localStorage.removeItem('cuentaIds');
-
-//             // Mostrar mensaje de cerrando sesión
-//             Swal.fire({
-//                 title: 'Cerrando sesión...',
-//                 timer: 1500,
-//                 timerProgressBar: true,
-//                 showConfirmButton: false,
-//                 willClose: () => {
-//                     window.location.href = 'index.html';
-//                 }
-//             });
-//         }
-//     });
-// }
-
-// Obtener cuentas del usuario (usando la estructura real de tu API)
+// Obtener cuentas del usuario (con mejor manejo de errores)
 async function getUserAccounts(userId) {
     try {
         console.log('🔄 Obteniendo cuentas para usuario ID:', userId);
         
+        if (!userId) {
+            throw new Error('ID de usuario no válido');
+        }
+        
         // Usar el mismo endpoint que funciona en Postman
-        const response = await fetch(`http://localhost:8080/api/cuentas/usuario/${userId}`, {
+        const url = `http://localhost:8080/api/cuentas/usuario/${userId}`;
+        console.log('📡 URL de la petición:', url);
+        
+        const response = await fetch(url, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json'
@@ -105,45 +105,85 @@ async function getUserAccounts(userId) {
         });
 
         console.log('📡 Response status:', response.status);
+        console.log('📡 Response ok:', response.ok);
 
         if (!response.ok) {
-            throw new Error(`Error ${response.status}: ${response.statusText}`);
+            const errorText = await response.text();
+            console.error('❌ Error response:', errorText);
+            throw new Error(`Error ${response.status}: ${errorText || response.statusText}`);
         }
 
         // Tu API devuelve un array directamente, no un objeto con campo 'cuentas'
         const cuentasArray = await response.json();
         console.log('📊 Array de cuentas obtenido:', cuentasArray);
         
-        if (Array.isArray(cuentasArray) && cuentasArray.length > 0) {
-            console.log('✅ Cuentas encontradas:', cuentasArray);
-            userAccounts = cuentasArray;
-            populateAccountDropdown();
-        } else {
-            console.warn('⚠️ No se encontraron cuentas en la respuesta');
-            Swal.fire({
-                icon: 'warning',
-                title: 'Sin cuentas',
-                text: 'No se encontraron cuentas asociadas al usuario',
-                confirmButtonColor: '#f59e0b'
-            });
+        if (!Array.isArray(cuentasArray)) {
+            console.error('❌ La respuesta no es un array:', typeof cuentasArray);
+            throw new Error('La respuesta del servidor no es un array válido');
         }
+        
+        if (cuentasArray.length === 0) {
+            console.warn('⚠️ Array de cuentas vacío');
+            showNoCuentasMessage();
+            return [];
+        }
+        
+        console.log('✅ Cuentas encontradas:', cuentasArray);
+        userAccounts = cuentasArray;
+        populateAccountDropdown();
         
         return userAccounts;
     } catch (error) {
         console.error('❌ Error al obtener cuentas:', error);
-        Swal.fire({
-            icon: 'error',
-            title: 'Error de conexión',
-            text: `No se pudieron cargar las cuentas: ${error.message}`,
-            confirmButtonColor: '#ef4444'
-        });
+        showErrorLoadingCuentas(error.message);
         return [];
     }
 }
 
-// Poblar el dropdown de cuentas (adaptado para la estructura de cuentas.js)
+// Mostrar mensaje cuando no hay cuentas
+function showNoCuentasMessage() {
+    const select = document.getElementById('cuentaOrigen');
+    select.innerHTML = '<option value="">No hay cuentas disponibles</option>';
+    
+    Swal.fire({
+        icon: 'info',
+        title: 'Sin cuentas',
+        text: 'No se encontraron cuentas asociadas al usuario',
+        confirmButtonColor: '#f59e0b'
+    });
+}
+
+// Mostrar error al cargar cuentas
+function showErrorLoadingCuentas(errorMessage) {
+    const select = document.getElementById('cuentaOrigen');
+    select.innerHTML = '<option value="">Error al cargar cuentas</option>';
+    
+    Swal.fire({
+        icon: 'error',
+        title: 'Error de conexión',
+        text: `No se pudieron cargar las cuentas: ${errorMessage}`,
+        confirmButtonColor: '#ef4444',
+        showCancelButton: true,
+        confirmButtonText: 'Reintentar',
+        cancelButtonText: 'Continuar'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const userId = getUserId();
+            if (userId) {
+                getUserAccounts(userId);
+            }
+        }
+    });
+}
+
+// Poblar el dropdown de cuentas (mejorado con validaciones)
 function populateAccountDropdown() {
     const select = document.getElementById('cuentaOrigen');
+    
+    if (!select) {
+        console.error('❌ No se encontró el elemento select con ID "cuentaOrigen"');
+        return;
+    }
     
     console.log('🔄 Poblando dropdown con cuentas:', userAccounts);
     
@@ -159,36 +199,40 @@ function populateAccountDropdown() {
         return;
     }
     
-    // Agregar las cuentas del usuario (estructura igual que en cuentas.js)
+    // Agregar las cuentas del usuario
     userAccounts.forEach((cuenta, index) => {
-        console.log(`📋 Cuenta ${index}:`, cuenta);
+        console.log(`📋 Procesando cuenta ${index}:`, cuenta);
+        
+        // Validar que la cuenta tenga los campos necesarios
+        if (!cuenta.id) {
+            console.warn(`⚠️ Cuenta ${index} no tiene ID válido:`, cuenta);
+            return;
+        }
         
         const option = document.createElement('option');
-        option.value = cuenta.id; // Las cuentas tienen directamente el campo 'id'
+        option.value = cuenta.id;
         
-        // Construir el texto de la opción usando la misma lógica que cuentas.js
+        // Construir el texto de la opción
         let cuentaText = '';
+        
+        // Tipo de cuenta
         if (cuenta.tipo) {
             cuentaText = cuenta.tipo.charAt(0).toUpperCase() + cuenta.tipo.slice(1).toLowerCase();
         } else {
             cuentaText = `Cuenta ${index + 1}`;
         }
         
-        // Agregar saldo con el mismo formato que cuentas.js
-        if (cuenta.saldo !== undefined && cuenta.saldo !== null) {
-            const saldoFormateado = formatNumber(cuenta.saldo);
-            cuentaText += ` - Saldo: ${saldoFormateado}`;
-            option.dataset.saldo = cuenta.saldo;
-        } else {
-            cuentaText += ' - Saldo: $0,00';
-            option.dataset.saldo = 0;
-        }
+        // Agregar saldo
+        const saldo = cuenta.saldo !== undefined && cuenta.saldo !== null ? cuenta.saldo : 0;
+        const saldoFormateado = formatNumber(saldo);
+        cuentaText += ` - Saldo: $${saldoFormateado}`;
+        option.dataset.saldo = saldo;
         
         // Agregar ID de cuenta
         cuentaText += ` (#${cuenta.id})`;
         
         // Si hay moneda diferente a peso, mostrarla
-        if (cuenta.moneda && cuenta.moneda !== 'peso') {
+        if (cuenta.moneda && cuenta.moneda.toLowerCase() !== 'peso' && cuenta.moneda.toLowerCase() !== 'ars') {
             cuentaText += ` - ${cuenta.moneda.toUpperCase()}`;
         }
         
@@ -210,6 +254,11 @@ function validateCuentaOrigen() {
     const select = document.getElementById('cuentaOrigen');
     const error = document.getElementById('cuentaOrigenError');
     
+    if (!select || !error) {
+        console.error('❌ No se encontraron elementos del formulario');
+        return false;
+    }
+    
     error.classList.add('hidden');
     select.classList.remove('error');
     
@@ -229,11 +278,15 @@ function validateCuentaOrigen() {
 // Actualizar saldo disponible en pantalla
 function updateSaldoDisponible(saldo) {
     const saldoElement = document.getElementById('saldoDisponible');
-    saldoElement.textContent = formatNumber(saldo);
+    if (saldoElement) {
+        saldoElement.textContent = formatNumber(saldo);
+    }
     
     // También actualizar el máximo del input de monto
     const montoInput = document.getElementById('monto');
-    montoInput.max = saldo;
+    if (montoInput) {
+        montoInput.max = saldo;
+    }
 }
 
 // Seleccionar contacto frecuente (ahora con CBU)
@@ -244,15 +297,23 @@ function selectContact(name, cbu) {
     const datosDestinatario = document.getElementById('datosDestinatario');
     const cbuStatus = document.getElementById('cbuStatus');
 
+    if (!cbuInput) {
+        console.error('❌ No se encontró el input de CBU');
+        return;
+    }
+
     cbuInput.value = cbu;
-    nombreDestinatario.textContent = name;
-    datosDestinatario.textContent = `CBU: ${cbu}`;
+    
+    if (nombreDestinatario) nombreDestinatario.textContent = name;
+    if (datosDestinatario) datosDestinatario.textContent = `CBU: ${cbu}`;
 
     if (validateCBU(cbu)) {
-        destinatarioInfo.classList.remove('hidden');
-        cbuStatus.classList.remove('hidden');
+        if (destinatarioInfo) {
+            destinatarioInfo.classList.remove('hidden');
+            destinatarioInfo.classList.add('fade-in');
+        }
+        if (cbuStatus) cbuStatus.classList.remove('hidden');
         showCBUSuccess();
-        destinatarioInfo.classList.add('fade-in');
     }
 
     if (window.innerWidth < 1024) {
@@ -269,6 +330,8 @@ function validateCBU(cbu) {
 // Validar CBU en tiempo real
 function validateCBUInput() {
     const input = document.getElementById('cbuDestinatario');
+    if (!input) return;
+    
     const value = input.value.trim();
     const destinatarioInfo = document.getElementById('destinatarioInfo');
     const cbuStatus = document.getElementById('cbuStatus');
@@ -277,8 +340,8 @@ function validateCBUInput() {
 
     if (value.length === 0) {
         input.classList.remove('error');
-        destinatarioInfo.classList.add('hidden');
-        cbuStatus.classList.add('hidden');
+        if (destinatarioInfo) destinatarioInfo.classList.add('hidden');
+        if (cbuStatus) cbuStatus.classList.add('hidden');
         return;
     }
 
@@ -321,26 +384,33 @@ function showDestinatarioInfo(cbu) {
         nombreDestino = cbuContactos[cbu];
     }
 
-    nombreDestinatario.textContent = nombreDestino;
-    datosDestinatario.textContent = `CBU: ${cbu}`;
+    if (nombreDestinatario) nombreDestinatario.textContent = nombreDestino;
+    if (datosDestinatario) datosDestinatario.textContent = `CBU: ${cbu}`;
 
-    destinatarioInfo.classList.remove('hidden');
-    cbuStatus.classList.remove('hidden');
-    destinatarioInfo.classList.add('fade-in');
+    if (destinatarioInfo) {
+        destinatarioInfo.classList.remove('hidden');
+        destinatarioInfo.classList.add('fade-in');
+    }
+    if (cbuStatus) cbuStatus.classList.remove('hidden');
 }
 
 // Mostrar error de CBU
 function showCBUError(message) {
     const input = document.getElementById('cbuDestinatario');
     const cbuError = document.getElementById('cbuError');
+    
+    if (!input || !cbuError) return;
+    
     const errorText = cbuError.querySelector('span:last-child');
     
     input.classList.add('error');
-    errorText.textContent = message;
+    if (errorText) errorText.textContent = message;
     cbuError.classList.remove('hidden');
     
-    document.getElementById('destinatarioInfo').classList.add('hidden');
-    document.getElementById('cbuStatus').classList.add('hidden');
+    const destinatarioInfo = document.getElementById('destinatarioInfo');
+    const cbuStatus = document.getElementById('cbuStatus');
+    if (destinatarioInfo) destinatarioInfo.classList.add('hidden');
+    if (cbuStatus) cbuStatus.classList.add('hidden');
 }
 
 // Mostrar éxito de CBU
@@ -348,26 +418,34 @@ function showCBUSuccess() {
     const input = document.getElementById('cbuDestinatario');
     const cbuSuccess = document.getElementById('cbuSuccess');
     
-    input.classList.remove('error');
-    cbuSuccess.classList.remove('hidden');
+    if (input) input.classList.remove('error');
+    if (cbuSuccess) cbuSuccess.classList.remove('hidden');
 }
 
 // Ocultar mensajes de CBU
 function hideCBUMessages() {
-    document.getElementById('cbuError').classList.add('hidden');
-    document.getElementById('cbuSuccess').classList.add('hidden');
+    const cbuError = document.getElementById('cbuError');
+    const cbuSuccess = document.getElementById('cbuSuccess');
+    
+    if (cbuError) cbuError.classList.add('hidden');
+    if (cbuSuccess) cbuSuccess.classList.add('hidden');
 }
 
 // Validar monto en tiempo real
 function validateMonto() {
     const input = document.getElementById('monto');
+    if (!input) return false;
+    
     const value = parseFloat(input.value);
     const cuentaSelect = document.getElementById('cuentaOrigen');
+    
+    if (!cuentaSelect) return false;
+    
     const selectedOption = cuentaSelect.options[cuentaSelect.selectedIndex];
     const saldoDisponible = parseFloat(selectedOption?.dataset.saldo || 0);
     const montoError = document.getElementById('montoError');
 
-    montoError.classList.add('hidden');
+    if (montoError) montoError.classList.add('hidden');
     input.classList.remove('error');
 
     if (isNaN(value) || value <= 0) {
@@ -397,15 +475,18 @@ function showMontoError(message) {
     const montoError = document.getElementById('montoError');
     const montoErrorText = document.getElementById('montoErrorText');
     
-    input.classList.add('error');
-    montoErrorText.textContent = message;
-    montoError.classList.remove('hidden');
+    if (input) input.classList.add('error');
+    if (montoErrorText) montoErrorText.textContent = message;
+    if (montoError) montoError.classList.remove('hidden');
 }
 
 // Actualizar contador de caracteres del concepto
 function updateConceptoCount() {
     const textarea = document.getElementById('concepto');
     const counter = document.getElementById('conceptoCount');
+    
+    if (!textarea || !counter) return;
+    
     const length = textarea.value.length;
     counter.textContent = `${length}/200`;
 
@@ -426,9 +507,9 @@ function formatNumber(num) {
 
 // Validar formulario completo
 function validateForm() {
-    const cuentaOrigenId = document.getElementById('cuentaOrigen').value;
-    const cbuDestinatario = document.getElementById('cbuDestinatario').value.trim();
-    const monto = parseFloat(document.getElementById('monto').value);
+    const cuentaOrigenId = document.getElementById('cuentaOrigen')?.value;
+    const cbuDestinatario = document.getElementById('cbuDestinatario')?.value.trim();
+    const monto = parseFloat(document.getElementById('monto')?.value);
     
     let isValid = true;
     let errors = [];
@@ -450,7 +531,8 @@ function validateForm() {
         errors.push('Debe ingresar un monto válido');
         isValid = false;
     } else {
-        const selectedOption = document.getElementById('cuentaOrigen').options[document.getElementById('cuentaOrigen').selectedIndex];
+        const cuentaSelect = document.getElementById('cuentaOrigen');
+        const selectedOption = cuentaSelect?.options[cuentaSelect.selectedIndex];
         const saldoDisponible = parseFloat(selectedOption?.dataset.saldo || 0);
         if (monto > saldoDisponible) {
             errors.push('El monto excede el saldo disponible en la cuenta seleccionada');
@@ -478,19 +560,19 @@ function processTransfer(event) {
     const submitIcon = document.getElementById('submitIcon');
     const submitText = document.getElementById('submitText');
     
-    submitBtn.disabled = true;
-    submitIcon.innerHTML = '<div class="loading"></div>';
-    submitText.textContent = 'Validando...';
+    if (submitBtn) submitBtn.disabled = true;
+    if (submitIcon) submitIcon.innerHTML = '<div class="loading"></div>';
+    if (submitText) submitText.textContent = 'Validando...';
 
     if (!validateForm()) {
         resetSubmitButton();
         return;
     }
 
-    const cuentaOrigenId = document.getElementById('cuentaOrigen').value;
-    const cbuDestinatario = document.getElementById('cbuDestinatario').value.trim();
-    const monto = parseFloat(document.getElementById('monto').value);
-    const concepto = document.getElementById('concepto').value.trim();
+    const cuentaOrigenId = document.getElementById('cuentaOrigen')?.value;
+    const cbuDestinatario = document.getElementById('cbuDestinatario')?.value.trim();
+    const monto = parseFloat(document.getElementById('monto')?.value);
+    const concepto = document.getElementById('concepto')?.value.trim();
 
     transferData = {
         cuentaOrigenId: parseInt(cuentaOrigenId),
@@ -510,14 +592,14 @@ function resetSubmitButton() {
     const submitIcon = document.getElementById('submitIcon');
     const submitText = document.getElementById('submitText');
     
-    submitBtn.disabled = false;
-    submitIcon.innerHTML = 'send';
-    submitText.textContent = 'Continuar';
+    if (submitBtn) submitBtn.disabled = false;
+    if (submitIcon) submitIcon.innerHTML = 'send';
+    if (submitText) submitText.textContent = 'Continuar';
 }
 
 // Mostrar confirmación de transferencia
 function showTransferConfirmation() {
-    const nombreDestino = document.getElementById('nombreDestinatario').textContent || 'Destinatario Verificado';
+    const nombreDestino = document.getElementById('nombreDestinatario')?.textContent || 'Destinatario Verificado';
 
     Swal.fire({
         title: '¿Confirmar transferencia?',
@@ -629,13 +711,15 @@ async function executeTransfer() {
 // Manejar transferencia exitosa
 function handleTransferSuccess(result) {
     const cuentaSelect = document.getElementById('cuentaOrigen');
-    const selectedOption = cuentaSelect.options[cuentaSelect.selectedIndex];
-    const saldoActual = parseFloat(selectedOption.dataset.saldo);
-    const nuevoSaldo = saldoActual - transferData.monto;
-    
-    selectedOption.dataset.saldo = nuevoSaldo;
-    selectedOption.textContent = `${selectedOption.textContent.split(' - Saldo:')[0]} - Saldo: $${formatNumber(nuevoSaldo)}`;
-    updateSaldoDisponible(nuevoSaldo);
+    if (cuentaSelect) {
+        const selectedOption = cuentaSelect.options[cuentaSelect.selectedIndex];
+        const saldoActual = parseFloat(selectedOption.dataset.saldo);
+        const nuevoSaldo = saldoActual - transferData.monto;
+        
+        selectedOption.dataset.saldo = nuevoSaldo;
+        selectedOption.textContent = `${selectedOption.textContent.split(' - Saldo:')[0]} - Saldo: $${formatNumber(nuevoSaldo)}`;
+        updateSaldoDisponible(nuevoSaldo);
+    }
 
     Swal.fire({
         title: '¡Transferencia exitosa!',
@@ -667,7 +751,7 @@ function handleTransferSuccess(result) {
                         </div>
                         <div class="flex justify-between">
                             <span class="text-gray-600">Nuevo saldo:</span>
-                            <span class="font-medium">$${formatNumber(nuevoSaldo)}</span>
+                            <span class="font-medium">$${formatNumber(parseFloat(document.getElementById('cuentaOrigen')?.options[document.getElementById('cuentaOrigen')?.selectedIndex]?.dataset.saldo || 0))}</span>
                         </div>
                     </div>
                 </div>
@@ -718,14 +802,23 @@ function handleTransferError(error) {
 
 // Limpiar formulario
 function clearForm() {
-    document.getElementById('transferForm').reset();
-    document.getElementById('destinatarioInfo').classList.add('hidden');
-    document.getElementById('cbuStatus').classList.add('hidden');
-    document.getElementById('conceptoCount').textContent = '0/200';
+    const transferForm = document.getElementById('transferForm');
+    if (transferForm) transferForm.reset();
+    
+    const destinatarioInfo = document.getElementById('destinatarioInfo');
+    const cbuStatus = document.getElementById('cbuStatus');
+    const conceptoCount = document.getElementById('conceptoCount');
+    
+    if (destinatarioInfo) destinatarioInfo.classList.add('hidden');
+    if (cbuStatus) cbuStatus.classList.add('hidden');
+    if (conceptoCount) conceptoCount.textContent = '0/200';
     
     hideCBUMessages();
-    document.getElementById('montoError').classList.add('hidden');
-    document.getElementById('cuentaOrigenError').classList.add('hidden');
+    
+    const montoError = document.getElementById('montoError');
+    const cuentaOrigenError = document.getElementById('cuentaOrigenError');
+    if (montoError) montoError.classList.add('hidden');
+    if (cuentaOrigenError) cuentaOrigenError.classList.add('hidden');
 
     const inputs = document.querySelectorAll('.form-input');
     inputs.forEach(input => {
@@ -735,13 +828,10 @@ function clearForm() {
     transferData = {};
 }
 
-// Cuando el DOM esté completamente cargado
-document.addEventListener('DOMContentLoaded', async function () {
-    console.log('✅ DOM cargado correctamente');
-
-    updateCurrentTime();
-    setInterval(updateCurrentTime, 60000);
-
+// Función principal de inicialización
+async function initializeTransferPage() {
+    console.log('🚀 Inicializando página de transferencias...');
+    
     // Obtener ID del usuario dinámicamente desde localStorage
     const usuarioId = getUserId();
     
@@ -758,18 +848,24 @@ document.addEventListener('DOMContentLoaded', async function () {
         return;
     }
 
+    console.log('✅ Usuario encontrado:', usuarioId);
+
     // Mostrar el nombre del usuario si está disponible en localStorage
     const nombreUsuario = localStorage.getItem('nombreUsuario');
     const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+    const userFullNameElement = document.getElementById('userFullName');
     
-    if (nombreUsuario && apellidoUsuario) {
-        document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`;
-    } else if (nombreUsuario) {
-        document.getElementById('userFullName').textContent = nombreUsuario;
-    } else {
-        document.getElementById('userFullName').textContent = `Usuario ${usuarioId}`;
+    if (userFullNameElement) {
+        if (nombreUsuario && apellidoUsuario) {
+            userFullNameElement.textContent = `${nombreUsuario} ${apellidoUsuario}`;
+        } else if (nombreUsuario) {
+            userFullNameElement.textContent = nombreUsuario;
+        } else {
+            userFullNameElement.textContent = `Usuario ${usuarioId}`;
+        }
     }
 
+    // Cargar cuentas del usuario
     try {
         console.log('🔄 Iniciando carga de cuentas para usuario:', usuarioId);
         await getUserAccounts(usuarioId);
@@ -790,32 +886,83 @@ document.addEventListener('DOMContentLoaded', async function () {
         });
     }
 
-    // Event listeners
+    // Configurar event listeners
+    setupEventListeners();
+
+    // Configuraciones iniciales
+    setupInitialState();
+}
+
+// Configurar todos los event listeners
+function setupEventListeners() {
+    console.log('🔧 Configurando event listeners...');
+    
     const cuentaOrigenSelect = document.getElementById('cuentaOrigen');
     const cbuInput = document.getElementById('cbuDestinatario');
     const montoInput = document.getElementById('monto');
     const conceptoTextarea = document.getElementById('concepto');
     const transferForm = document.getElementById('transferForm');
 
-    cuentaOrigenSelect.addEventListener('change', validateCuentaOrigen);
-    cbuInput.addEventListener('input', validateCBUInput);
-    cbuInput.addEventListener('blur', validateCBUInput);
+    // Event listeners para validaciones
+    if (cuentaOrigenSelect) {
+        cuentaOrigenSelect.addEventListener('change', validateCuentaOrigen);
+        console.log('✅ Event listener agregado: cuenta origen');
+    }
     
-    // Solo permitir números en el CBU
-    cbuInput.addEventListener('keypress', function(e) {
-        if (!/\d/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
-            e.preventDefault();
+    if (cbuInput) {
+        cbuInput.addEventListener('input', validateCBUInput);
+        cbuInput.addEventListener('blur', validateCBUInput);
+        
+        // Solo permitir números en el CBU
+        cbuInput.addEventListener('keypress', function(e) {
+            if (!/\d/.test(e.key) && !['Backspace', 'Delete', 'Tab', 'Escape', 'Enter', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+                e.preventDefault();
+            }
+        });
+        console.log('✅ Event listeners agregados: CBU input');
+    }
+
+    if (montoInput) {
+        montoInput.addEventListener('input', validateMonto);
+        montoInput.addEventListener('blur', validateMonto);
+        console.log('✅ Event listeners agregados: monto input');
+    }
+    
+    if (conceptoTextarea) {
+        conceptoTextarea.addEventListener('input', updateConceptoCount);
+        console.log('✅ Event listener agregado: concepto textarea');
+    }
+    
+    if (transferForm) {
+        transferForm.addEventListener('submit', processTransfer);
+        console.log('✅ Event listener agregado: form submit');
+    }
+
+    // Prevenir envío del formulario con Enter en campos de texto
+    document.addEventListener('keydown', function(event) {
+        if (event.key === 'Enter' && event.target.tagName !== 'BUTTON' && event.target.type !== 'submit') {
+            if (event.target.tagName !== 'TEXTAREA') {
+                event.preventDefault();
+            }
         }
     });
 
-    montoInput.addEventListener('input', validateMonto);
-    montoInput.addEventListener('blur', validateMonto);
-    conceptoTextarea.addEventListener('input', updateConceptoCount);
-    transferForm.addEventListener('submit', processTransfer);
+    console.log('✅ Todos los event listeners configurados');
+}
 
+// Configuraciones iniciales de la página
+function setupInitialState() {
+    console.log('⚙️ Configurando estado inicial...');
+    
     // Formatear saldo inicial
     const saldoElement = document.getElementById('saldoDisponible');
-    saldoElement.textContent = formatNumber(0);
+    if (saldoElement) {
+        saldoElement.textContent = formatNumber(0);
+    }
+
+    // Configurar hora actual
+    updateCurrentTime();
+    setInterval(updateCurrentTime, 60000); // Actualizar cada minuto
 
     // Animaciones de entrada
     setTimeout(() => {
@@ -826,23 +973,33 @@ document.addEventListener('DOMContentLoaded', async function () {
             }, index * 100);
         });
     }, 100);
-});
 
-// Manejar responsive en tiempo real
-window.addEventListener('resize', function() {
-    const isMobile = window.innerWidth < 1024;
-    if (isMobile) {
-        document.body.style.paddingBottom = '2rem';
-    } else {
-        document.body.style.paddingBottom = '0';
-    }
-});
-
-// Prevenir envío del formulario con Enter en campos de texto
-document.addEventListener('keydown', function(event) {
-    if (event.key === 'Enter' && event.target.tagName !== 'BUTTON' && event.target.type !== 'submit') {
-        if (event.target.tagName !== 'TEXTAREA') {
-            event.preventDefault();
+    // Manejar responsive en tiempo real
+    const handleResize = function() {
+        const isMobile = window.innerWidth < 1024;
+        if (isMobile) {
+            document.body.style.paddingBottom = '2rem';
+        } else {
+            document.body.style.paddingBottom = '0';
         }
-    }
+    };
+    
+    window.addEventListener('resize', handleResize);
+    handleResize(); // Ejecutar una vez al cargar
+
+    console.log('✅ Estado inicial configurado');
+}
+
+// Cuando el DOM esté completamente cargado
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🌟 DOM completamente cargado - Iniciando aplicación...');
+    
+    // Hacer la función debugInfo disponible globalmente para debugging
+    window.debugInfo = debugInfo;
+    
+    // Inicializar la página
+    initializeTransferPage();
 });
+
+// Exponer funciones necesarias globalmente para los onclick del HTML
+window.selectContact = selectContact;
