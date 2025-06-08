@@ -6,7 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="description" content="AlkyWallet - tu billetera digital con carga, pagos, transferencias y control total." />
   <meta name="keywords" content="billetera virtual, pagos, transferencias, finanzas personales, AlkyWallet" />
-  <meta name="author" content="Pingüinos Tecnologícos" />
+  <meta name="author" content="Pingüinos Tecnológícos" />
   <meta property="og:title" content="AlkyWallet" />
   <meta property="og:description" content="Gestioná tu dinero de forma fácil y segura con AlkyWallet." />
   <meta property="og:type" content="website" />
@@ -207,6 +207,15 @@
             color: white;
         }
 
+        /* Estilos para el botón principal */
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #5a67d8 0%, #68d391 100%);
+        }
+
         /* Estilos para el modal de movimientos */
         .movimientos-modal .movement-item {
             border-left: 4px solid transparent;
@@ -236,6 +245,21 @@
         .movimientos-modal::-webkit-scrollbar-thumb:hover {
             background: #5a67d8;
         }
+
+        /* NUEVO: Estilos para la tarjeta del dólar */
+        .dollar-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+
+        .pulse-dollar {
+            animation: pulseDollar 3s ease-in-out infinite;
+        }
+
+        @keyframes pulseDollar {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
     </style>
 </head>
 <body class="gradient-bg text-gray-800 min-h-screen">
@@ -253,9 +277,10 @@
         </div>
     </section>
 
-    <!-- Estadísticas de cuentas -->
+    <!-- Estadísticas de cuentas CON NUEVA TARJETA DE DÓLAR -->
     <section class="mb-8 slide-in">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <!-- Tarjeta 1: Total en cuentas -->
             <div class="glass-effect rounded-2xl p-6 hover-scale">
                 <div class="flex items-center justify-between">
                     <div class="w-full">
@@ -270,6 +295,7 @@
                 </div>
             </div>
 
+            <!-- Tarjeta 2: Cuentas activas -->
             <div class="glass-effect rounded-2xl p-6 hover-scale">
                 <div class="flex items-center justify-between">
                     <div>
@@ -282,6 +308,7 @@
                 </div>
             </div>
 
+            <!-- Tarjeta 3: Cuenta principal -->
             <div class="glass-effect rounded-2xl p-6 hover-scale">
                 <div class="flex items-center justify-between">
                     <div>
@@ -291,6 +318,31 @@
                     <div class="w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
                         <span class="material-icons text-purple-600">star</span>
                     </div>
+                </div>
+            </div>
+
+            <!-- NUEVA TARJETA 4: Cotización del Dólar -->
+            <div class="dollar-card rounded-2xl p-6 hover-scale cursor-pointer pulse-dollar" onclick="mostrarCotizacionDetalle()">
+                <div class="flex items-center justify-between">
+                    <div class="flex-1">
+                        <p class="text-sm text-white opacity-90 mb-2">Cotización USD</p>
+                        <div class="space-y-1">
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs opacity-75">Compra:</span>
+                                <span class="text-lg font-bold">$1.170</span>
+                            </div>
+                            <div class="flex items-center justify-between">
+                                <span class="text-xs opacity-75">Venta:</span>
+                                <span class="text-lg font-bold">$1.190</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="w-12 h-12 bg-white bg-opacity-20 rounded-xl flex items-center justify-center flex-shrink-0 ml-3">
+                        <span class="text-2xl">💵</span>
+                    </div>
+                </div>
+                <div class="mt-2 text-center">
+                    <p class="text-xs opacity-75">Click para detalles</p>
                 </div>
             </div>
         </div>
@@ -304,10 +356,19 @@
                     <span class="material-icons mr-2 text-blue-600">account_balance</span>
                     Mis Cuentas
                 </h3>
-                <button onclick="showCreateForm()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-all duration-300 flex items-center">
-                    <span class="material-icons mr-2">add</span>
-                    Nueva Cuenta
-                </button>
+                <div class="flex space-x-3">
+                    <!-- NUEVO BOTÓN: Cambio de Divisas -->
+                    <button onclick="redirectToCurrencyExchange()" class="bg-gradient-to-r from-green-500 to-emerald-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-all duration-300 flex items-center">
+                        <span class="material-icons mr-2">currency_exchange</span>
+                        Cambio de Divisas
+                    </button>
+                    
+                    <!-- Botón existente: Nueva Cuenta -->
+                    <button onclick="showCreateForm()" class="bg-gradient-to-r from-blue-500 to-purple-600 text-white px-4 py-2 rounded-xl hover:scale-105 transition-all duration-300 flex items-center">
+                        <span class="material-icons mr-2">add</span>
+                        Nueva Cuenta
+                    </button>
+                </div>
             </div>
 
             <div id="lista-cuentas" class="space-y-4">
@@ -343,17 +404,16 @@
             </div>
 
             <form id="cuenta-form" class="space-y-6">
+                <input type="hidden" id="cuenta-id" value="">
+                
                 <div class="w-full">
                     <label for="cuenta-tipo" class="block text-sm font-medium text-gray-700 mb-2">
                         <span class="material-icons text-sm mr-1">category</span>
                         Tipo de cuenta
                     </label>
-                    <select id="cuenta-tipo" class="form-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none" required>
+                    <select id="cuenta-tipo" class="form-input w-full p-4 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500" required>
                         <option value="">Selecciona un tipo de cuenta</option>
-                        <option value="ahorro">💰 Cuenta de Ahorro</option>
-                        <option value="corriente">🏦 Cuenta Corriente</option>
-                        <option value="inversion">📈 Cuenta de Inversión</option>
-                        <option value="credito">💳 Cuenta de Crédito</option>
+                        <!-- Las opciones se cargan dinámicamente desde el JavaScript -->
                     </select>
                 </div>
 
@@ -375,466 +435,145 @@
    <!-- Footer Placeholder -->
   <div id="footer-placeholder" class="mt-8"></div>
 
-    <!-- Script para funcionalidad básica -->
+    <!-- Scripts -->
      <script src="js/header.js"></script>
      <script src="js/loader.js"></script>
+     <!-- INCLUIR EL ARCHIVO cuenta.js AL FINAL PARA QUE TOME PRECEDENCIA -->
+     <script src="js/cuenta.js"></script>
 
 <script>
-    // Función para mostrar la hora actual
-    function updateTime() {
-        const now = new Date();
-        const timeString = now.toLocaleString('es-AR', {
-            weekday: 'long',
-            year: 'numeric',
-            month: 'long',
-            day: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
-        const timeElement = document.getElementById('currentTime');
-        if (timeElement) {
-            timeElement.textContent = timeString;
-        }
-    }
-
-    // Funciones para el formulario
-    function showCreateForm() {
+    // Script mínimo para compatibilidad - Las funciones principales están en cuenta.js
+    
+    // Funciones globales para compatibilidad con el HTML
+    window.showCreateForm = function() {
         document.getElementById('form-section').classList.remove('hidden');
         document.getElementById('form-title').textContent = 'Crear Nueva Cuenta';
         document.getElementById('btn-text').textContent = 'Crear Cuenta';
         document.getElementById('cuenta-form').reset();
-    }
+        document.getElementById('cuenta-id').value = '';
+    };
 
-    function hideForm() {
+    window.hideForm = function() {
         document.getElementById('form-section').classList.add('hidden');
-    }
+    };
 
-    // FUNCIÓN ACTUALIZADA: mostrarMovimientos con ID de cuenta específico
-    function mostrarMovimientos(cuentaId) {
-        console.log('🎯 Solicitando movimientos para cuenta ID:', cuentaId);
-        
-        Swal.fire({
-            title: 'Cargando movimientos...',
-            html: `<div class="pulse-animation">Obteniendo historial de movimientos de la cuenta #${cuentaId}</div>`,
-            allowOutsideClick: false,
-            showConfirmButton: false,
-            willOpen: () => {
-                Swal.showLoading();
-            }
-        });
-
-        // Endpoint específico para la cuenta
-        const endpointToUse = `http://localhost:8080/api/movimientos/${cuentaId}`;
-        console.log('📡 Llamando a endpoint:', endpointToUse);
-
-        fetch(endpointToUse)
-            .then(response => {
-                console.log('📡 Response status:', response.status);
-                if (!response.ok) {
-                    // Si falla, intentar con endpoint alternativo
-                    if (response.status === 404) {
-                        console.log('⚠️ Endpoint principal falló, intentando endpoint alternativo...');
-                        return fetch(`http://localhost:8080/api/cuentas/${cuentaId}/movimientos`);
-                    }
-                    throw new Error(`Error ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(response => {
-                // Si la primera llamada falló y estamos en la segunda
-                if (response && typeof response.json === 'function') {
-                    console.log('📡 Usando endpoint alternativo, status:', response.status);
-                    if (!response.ok) {
-                        throw new Error(`Error ${response.status}: ${response.statusText}`);
-                    }
-                    return response.json();
-                }
-                return response;
-            })
-            .then(movimientos => {
-                console.log('📊 Movimientos obtenidos para cuenta', cuentaId, ':', movimientos);
-                
-                // Validar que la respuesta sea un array
-                if (!Array.isArray(movimientos)) {
-                    console.warn('⚠️ La respuesta no es un array:', movimientos);
-                    if (movimientos.movimientos && Array.isArray(movimientos.movimientos)) {
-                        movimientos = movimientos.movimientos;
-                    } else if (movimientos.data && Array.isArray(movimientos.data)) {
-                        movimientos = movimientos.data;
-                    } else {
-                        movimientos = [];
-                    }
-                }
-                
-                mostrarModalMovimientos(movimientos, cuentaId);
-            })
-            .catch(error => {
-                console.error('❌ Error al obtener movimientos para cuenta', cuentaId, ':', error);
-                
-                let errorMessage = 'No se pudieron cargar los movimientos.';
-                
-                if (error.message.includes('404')) {
-                    errorMessage = `No se encontraron movimientos para la cuenta #${cuentaId} o el endpoint no existe.`;
-                } else if (error.message.includes('500')) {
-                    errorMessage = 'Error interno del servidor. Por favor, intenta nuevamente.';
-                } else if (error.message.includes('Failed to fetch')) {
-                    errorMessage = 'Error de conexión. Verifica que el servidor esté ejecutándose.';
-                }
-                
-                Swal.fire({
-                    title: 'Error al cargar movimientos',
-                    html: `
-                        <div class="text-left">
-                            <p class="mb-2">${errorMessage}</p>
-                            <div class="text-sm text-gray-600 bg-gray-50 p-3 rounded">
-                                <strong>Detalles técnicos:</strong><br>
-                                • Cuenta ID: ${cuentaId}<br>
-                                • Endpoint: ${endpointToUse}<br>
-                                • Error: ${error.message}
-                            </div>
-                        </div>
-                    `,
-                    icon: 'error',
-                    confirmButtonText: 'Entendido',
-                    confirmButtonColor: '#667eea'
-                });
-            });
-    }
-
-    // NUEVA FUNCIÓN: Mostrar el modal con los movimientos
-    function mostrarModalMovimientos(movimientos, cuentaId) {
-        // Función para obtener el icono del tipo de movimiento
-        function getTipoMovimientoIcon(tipo) {
-            const iconos = {
-                'TRANSACCION': '💳',
-                'TRANSFERENCIA': '🔄',
-                'DEPOSITO': '⬇️',
-                'RETIRO': '⬆️',
-                'CARGA': '💰',
-                'PAGO': '🛒'
-            };
-            return iconos[tipo] || '📄';
-        }
-
-        // Función para formatear fecha
-        function formatearFecha(fecha) {
-            try {
-                const fechaObj = new Date(fecha);
-                return fechaObj.toLocaleDateString('es-AR', {
-                    day: '2-digit',
-                    month: '2-digit',
-                    year: 'numeric'
-                });
-            } catch (error) {
-                return fecha;
-            }
-        }
-
-        // Función para formatear monto con color
-        function formatearMontoConColor(monto) {
-            const valor = parseFloat(monto);
-            const isPositivo = valor >= 0;
-            const colorClass = isPositivo ? 'text-green-600' : 'text-red-600';
-            const signo = isPositivo ? '+' : '';
-            
-            return `<span class="${colorClass} font-bold">${signo}$${Math.abs(valor).toLocaleString('es-AR', {minimumFractionDigits: 2})}</span>`;
-        }
-
-        if (!movimientos || movimientos.length === 0) {
-            const htmlVacio = `
-                <div class="text-center py-8">
-                    <div class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                        <span class="material-icons text-gray-400 text-3xl">receipt_long</span>
-                    </div>
-                    <h4 class="text-lg font-medium text-gray-600 mb-2">No hay movimientos</h4>
-                    <p class="text-gray-500">Esta cuenta no tiene movimientos registrados</p>
-                </div>
-            `;
-
-            Swal.fire({
-                title: `Movimientos - Cuenta #${cuentaId}`,
-                html: htmlVacio,
-                width: '700px',
-                showCloseButton: true,
-                showConfirmButton: true,
-                confirmButtonText: 'Cerrar',
-                confirmButtonColor: '#667eea'
-            });
-            return;
-        }
-
-        // Ordenar movimientos por fecha (más recientes primero)
-        const movimientosOrdenados = movimientos.sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
-
-        // Generar HTML para los movimientos
-        const htmlMovimientos = `
-            <div class="movimientos-modal text-left max-h-96 overflow-y-auto">
-                <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-4 rounded-lg mb-4 sticky top-0 z-10">
-                    <h3 class="text-lg font-bold text-gray-800 mb-2 flex items-center">
-                        <span class="material-icons mr-2 text-blue-600">receipt_long</span>
-                        Historial de Movimientos - Cuenta #${cuentaId}
-                    </h3>
-                    <p class="text-sm text-gray-600">Total de movimientos: ${movimientos.length}</p>
-                </div>
-                
-                <div class="space-y-3">
-                    ${movimientosOrdenados.map((movimiento, index) => `
-                        <div class="movement-item bg-white border border-gray-200 rounded-lg p-4 hover:shadow-md transition-all duration-200">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center space-x-3">
-                                    <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-                                        <span class="text-lg">${getTipoMovimientoIcon(movimiento.tipoMovimiento)}</span>
-                                    </div>
-                                    <div class="min-w-0 flex-1">
-                                        <div class="flex items-center space-x-2 mb-1">
-                                            <h4 class="text-sm font-semibold text-gray-800">${movimiento.tipoMovimiento.replace('_', ' ')}</h4>
-                                            <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded-full">
-                                                #${index + 1}
-                                            </span>
-                                        </div>
-                                        <p class="text-xs text-gray-600 mb-1">${movimiento.descripcion || 'Sin descripción'}</p>
-                                        <p class="text-xs text-gray-500">📅 ${formatearFecha(movimiento.fecha)}</p>
-                                    </div>
-                                </div>
-                                <div class="text-right">
-                                    <div class="text-lg font-bold">
-                                        ${formatearMontoConColor(movimiento.monto)}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-
-                <!-- Resumen al final -->
-                <div class="bg-gray-50 rounded-lg p-4 mt-4 sticky bottom-0">
-                    <h4 class="font-semibold text-gray-800 mb-2 flex items-center">
-                        <span class="material-icons mr-2 text-gray-600">analytics</span>
-                        Resumen de movimientos
-                    </h4>
-                    <div class="grid grid-cols-2 gap-4 text-sm">
-                        <div>
-                            <span class="text-gray-600">Ingresos:</span>
-                            <span class="font-bold text-green-600">
-                                $${movimientos
-                                    .filter(m => parseFloat(m.monto) > 0)
-                                    .reduce((sum, m) => sum + parseFloat(m.monto), 0)
-                                    .toLocaleString('es-AR', {minimumFractionDigits: 2})}
-                            </span>
-                        </div>
-                        <div>
-                            <span class="text-gray-600">Egresos:</span>
-                            <span class="font-bold text-red-600">
-                                $${Math.abs(movimientos
-                                    .filter(m => parseFloat(m.monto) < 0)
-                                    .reduce((sum, m) => sum + parseFloat(m.monto), 0))
-                                    .toLocaleString('es-AR', {minimumFractionDigits: 2})}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `;
-
-        Swal.fire({
-            html: htmlMovimientos,
-            width: '750px',
-            showCloseButton: true,
-            showConfirmButton: true,
-            confirmButtonText: 'Cerrar',
-            confirmButtonColor: '#667eea',
-            customClass: {
-                popup: 'rounded-xl',
-                content: 'p-0'
-            }
-        });
-    }
-
-    // Función para actualizar las estadísticas de balance separadas por moneda
-    function updateBalanceStats(cuentas) {
-        const balancePorMoneda = {
-            peso: 0,
-            dolar_comun: 0,
-            dolar_cripto: 0
-        };
-
-        cuentas.forEach(cuenta => {
-            const moneda = cuenta.moneda || 'peso';
-            balancePorMoneda[moneda] += parseFloat(cuenta.saldo || 0);
-        });
-
-        const totalBalanceEl = document.getElementById('totalBalance');
-        let htmlBalance = '';
-
-        htmlBalance += `<div class="text-2xl font-bold text-blue-600">$${balancePorMoneda.peso.toLocaleString('es-AR', {minimumFractionDigits: 2})}</div>`;
-        
-        if (balancePorMoneda.dolar_comun > 0) {
-            htmlBalance += `<div class="text-lg font-semibold text-green-600">US$${balancePorMoneda.dolar_comun.toLocaleString('es-AR', {minimumFractionDigits: 2})}</div>`;
-        }
-        
-        if (balancePorMoneda.dolar_cripto > 0) {
-            htmlBalance += `<div class="text-lg font-semibold text-orange-600">₿${balancePorMoneda.dolar_cripto.toLocaleString('es-AR', {minimumFractionDigits: 8})}</div>`;
-        }
-
-        totalBalanceEl.innerHTML = htmlBalance;
-        document.getElementById('activeAccounts').textContent = cuentas.length;
-    }
-
-    // Función para cargar cuentas (ejemplo) - CON BOTÓN DE MOVIMIENTOS Y SIN USUARIO ID
-    function loadAccounts() {
-        const cuentas = [
-            {
-                id: 1,
-                tipo: 'ahorro',
-                saldo: 125000.50,
-                icono: '💰',
-                color: 'blue',
-                moneda: 'peso'
-            },
-            {
-                id: 2,
-                tipo: 'corriente',
-                saldo: 89750.25,
-                icono: '🏦',
-                color: 'green',
-                moneda: 'peso'
-            },
-            {
-                id: 3,
-                tipo: 'ahorro',
-                saldo: 5500.00,
-                icono: '💵',
-                color: 'green',
-                moneda: 'dolar_comun'
-            }
-        ];
-
-        const listaCuentas = document.getElementById('lista-cuentas');
-        const emptyState = document.getElementById('empty-accounts');
-
-        if (cuentas.length === 0) {
-            emptyState.classList.remove('hidden');
-            return;
-        }
-
-        // Función para obtener el nombre de la moneda en español
-        function getNombreMoneda(moneda) {
-            const nombres = {
-                'peso': 'Peso',
-                'dolar_comun': 'Dólares',
-                'dolar_cripto': 'Cripto'
-            };
-            return nombres[moneda] || 'Peso';
-        }
-
-        listaCuentas.innerHTML = cuentas.map(cuenta => `
-            <div class="account-item bg-white border border-gray-200 rounded-xl p-6 hover:shadow-lg transition-all duration-300">
-                <div class="flex items-center justify-between">
-                    <div class="flex items-center space-x-4">
-                        <div class="w-16 h-16 bg-${cuenta.color}-100 rounded-xl flex items-center justify-center text-2xl">
-                            ${cuenta.icono}
-                        </div>
-                        <div>
-                            <div class="flex items-center space-x-2 mb-1">
-                                <h4 class="text-lg font-semibold text-gray-800 capitalize">${cuenta.tipo}</h4>
-                                <span class="text-xs bg-gray-100 text-gray-600 px-2 py-1 rounded-full">#${cuenta.id}</span>
-                                <span class="text-xs bg-${cuenta.color}-100 text-${cuenta.color}-700 px-2 py-1 rounded-full">${getNombreMoneda(cuenta.moneda)}</span>
-                            </div>
-                            <p class="text-2xl font-bold text-${cuenta.color}-600 mt-2">
-                                ${cuenta.moneda === 'dolar_comun' ? 'US$' : cuenta.moneda === 'dolar_cripto' ? '₿' : '$'}${cuenta.saldo.toLocaleString('es-AR', {minimumFractionDigits: 2})}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="text-right">
-                        <div class="flex space-x-2 mt-2">
-                            <button onclick="mostrarMovimientos(${cuenta.id})" class="text-blue-600 hover:text-blue-800 p-2 hover:bg-blue-50 rounded-lg transition-colors" title="Ver movimientos">
-                                <span class="material-icons text-sm">receipt_long</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `).join('');
-
-        updateBalanceStats(cuentas);
-    }
-
-    // Script para el formulario
-    document.getElementById('cuenta-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        const tipo = document.getElementById('cuenta-tipo').value;
-        
-        if (!tipo) {
-            Swal.fire("Atención", "Selecciona un tipo de cuenta", "warning");
-            return;
-        }
-
-        const formData = {
-            tipo: tipo,
-            saldo: 0,
-            usuarioId: 2
-        };
-
-        console.log('Datos del formulario:', formData);
-        
-        Swal.fire({
-            title: 'Éxito',
-            text: 'Cuenta creada correctamente',
-            icon: 'success',
-            timer: 2000,
-            showConfirmButton: false
-        }).then(() => {
-            hideForm();
-            loadAccounts();
-        });
-    });
-
-    // Función logout
-    function logout() {
+    window.logout = function() {
         Swal.fire({
             title: '¿Cerrar sesión?',
-            text: 'Se cerrará tu sesión actual',
+            text: 'Tu sesión se cerrará y volverás a la página de inicio',
             icon: 'question',
             showCancelButton: true,
-            confirmButtonColor: '#d33',
-            cancelButtonColor: '#3085d6',
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#6b7280',
             confirmButtonText: 'Sí, cerrar sesión',
             cancelButtonText: 'Cancelar'
         }).then((result) => {
             if (result.isConfirmed) {
-                localStorage.clear();
+                localStorage.removeItem('usuarioId');
+                localStorage.removeItem('nombreUsuario');
+                localStorage.removeItem('apellidoUsuario');
+                localStorage.removeItem('cuentaIds');
                 window.location.href = 'index.html';
             }
         });
-    }
+    };
 
-    // Inicializar al cargar la página
-    document.addEventListener('DOMContentLoaded', function() {
-        updateTime();
-        setInterval(updateTime, 60000); // Actualizar cada minuto
-
-        // Obtener el nombre y apellido del usuario del localStorage
-        const nombreUsuario = localStorage.getItem('nombreUsuario');
-        const apellidoUsuario = localStorage.getItem('apellidoUsuario');
-        const userFullNameElement = document.getElementById('userFullName');
-        
-        if (userFullNameElement) {
-            if (nombreUsuario && apellidoUsuario) {
-                userFullNameElement.textContent = `${nombreUsuario} ${apellidoUsuario}`;
-            } else {
-                userFullNameElement.textContent = 'Usuario';
+    // NUEVA FUNCIÓN: Mostrar detalle de cotización
+    window.mostrarCotizacionDetalle = function() {
+        Swal.fire({
+            title: '💵 Cotización del Dólar',
+            html: `
+                <div class="text-left space-y-4">
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <h4 class="font-bold text-green-800 mb-3">Cotización Actual</h4>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="text-center">
+                                <p class="text-sm text-gray-600">Compra</p>
+                                <p class="text-2xl font-bold text-green-600">$1.170</p>
+                            </div>
+                            <div class="text-center">
+                                <p class="text-sm text-gray-600">Venta</p>
+                                <p class="text-2xl font-bold text-blue-600">$1.190</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h4 class="font-bold text-blue-800 mb-2">Información</h4>
+                        <ul class="text-sm text-gray-700 space-y-1">
+                            <li>• Última actualización: Hace 5 minutos</li>
+                            <li>• Variación del día: +$12,30 (+1.04%)</li>
+                            <li>• Fuente: Mercado oficial</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="text-center">
+                        <p class="text-sm text-gray-500">
+                            Para realizar cambios de divisa, contacta a nuestro equipo de soporte.
+                        </p>
+                    </div>
+                </div>
+            `,
+            width: '500px',
+            showConfirmButton: true,
+            confirmButtonText: 'Entendido',
+            confirmButtonColor: '#10b981',
+            customClass: {
+                popup: 'rounded-xl'
             }
+        });
+    };
+
+    // NUEVA FUNCIÓN: Redireccionar a cambio de divisas
+    window.redirectToCurrencyExchange = function() {
+        // Verificar que hay usuario logueado
+        const usuarioId = localStorage.getItem('usuarioId') || localStorage.getItem('cuentaIds');
+        
+        if (!usuarioId) {
+            Swal.fire({
+                title: 'Sesión requerida',
+                text: 'Necesitas estar logueado para acceder al cambio de divisas',
+                icon: 'warning',
+                confirmButtonText: 'Entendido'
+            });
+            return;
         }
+
+        // Redirigir a la página de cambio de divisas
+        window.location.href = 'cambio-divisas.html';
+    };
+
+    // Inicialización básica
+    document.addEventListener('DOMContentLoaded', function() {
+        // El archivo cuenta.js maneja toda la lógica principal
+        console.log('✅ HTML cargado, cuenta.js se encargará de la funcionalidad');
+        
+        // Actualizar cotización cada 30 segundos (simulación)
+        setInterval(updateDollarRate, 30000);
     });
 
-    // Inicialización
-    updateTime();
-    setInterval(updateTime, 1000);
-    loadAccounts();
+    // NUEVA FUNCIÓN: Actualizar cotización (simulación)
+    function updateDollarRate() {
+        // Simular pequeñas variaciones en la cotización
+        const buyVariation = (Math.random() - 0.5) * 10; // ±5
+        const sellVariation = (Math.random() - 0.5) * 10; // ±5
+        
+        const newBuyRate = Math.max(1160, 1170 + buyVariation);
+        const newSellRate = Math.max(1180, 1190 + sellVariation);
+        
+        // Encontrar la tarjeta del dólar y actualizar valores
+        const dollarCard = document.querySelector('.dollar-card');
+        if (dollarCard) {
+            const buyElement = dollarCard.querySelector('.flex:nth-child(1) .text-lg');
+            const sellElement = dollarCard.querySelector('.flex:nth-child(2) .text-lg');
+            
+            if (buyElement && sellElement) {
+                buyElement.textContent = `$${newBuyRate.toFixed(0)}`;
+                sellElement.textContent = `$${newSellRate.toFixed(0)}`;
+            }
+        }
+    }
 </script>
 
-<!-- Incluir tu script cuenta.js existente -->
-<script src="js/cuenta.js"></script>
 </body>
 </html>
