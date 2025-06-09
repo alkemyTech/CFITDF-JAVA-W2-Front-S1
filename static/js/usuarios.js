@@ -80,6 +80,10 @@ function mostrarUsuarios(usuarios) {
                 <button onclick="verUsuario(${usuario.id})" class="text-blue-600 hover:text-blue-800">Ver</button>
                 <button onclick="modificarUsuario(${usuario.id})" class="text-green-600 hover:text-green-800 ml-2">Modificar</button>
                 <button onclick="eliminarUsuario(${usuario.id})" class="text-red-600 hover:text-red-800 ml-2">Eliminar</button>
+                ${usuario.activo 
+                    ? `<button onclick="desactivarUsuario(${usuario.id})" class="text-red-600 hover:text-red-800 ml-2">Desactivar</button>` 
+                    : `<button onclick="activarUsuario(${usuario.id})" class="text-green-600 hover:text-green-800 ml-2">Activar</button>`}
+            </td>
             </td>
         `;
         tablaUsuarios.appendChild(row);
