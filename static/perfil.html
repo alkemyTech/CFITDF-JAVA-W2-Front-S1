@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AlkyWallet - tu billetera digital con carga, pagos, transferencias y control total." />
+  <meta name="keywords" content="billetera virtual, pagos, transferencias, finanzas personales, AlkyWallet" />
+  <meta name="author" content="Pingüinos Tecnológicos" />
+  <meta property="og:title" content="AlkyWallet" />
+  <meta property="og:description" content="Gestioná tu dinero de forma fácil y segura con AlkyWallet." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="http://localhost:8080" />
+  <meta property="og:image" content="/assets/logo.png" />
+  <title>Mi Perfil - AlkyWallet</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- SweetAlert2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Material Icons -->
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+
+    .gradient-bg {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+
+    .glass-effect {
+      background: rgba(255, 255, 255, 0.95);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+    }
+
+    .floating-animation {
+      animation: float 6s ease-in-out infinite;
+    }
+
+    @keyframes float {
+      0%, 100% { transform: translateY(0px); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .pulse-shadow {
+      box-shadow: 0 0 0 0 rgba(59, 130, 246, 0.7);
+      transition: all 0.3s ease;
+    }
+
+    .pulse-shadow:hover {
+      box-shadow: 0 0 0 10px rgba(59, 130, 246, 0);
+    }
+
+    .profile-card {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .profile-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 25px 50px rgba(0, 0, 0, 0.15);
+    }
+
+    .profile-item {
+      transition: all 0.3s ease;
+      border-left: 3px solid transparent;
+    }
+
+    .profile-item:hover {
+      background: rgba(102, 126, 234, 0.05);
+      border-left-color: #667eea;
+      transform: translateX(5px);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      transition: all 0.3s ease;
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+    }
+
+    .btn-secondary {
+      background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+      transition: all 0.3s ease;
+    }
+
+    .btn-secondary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 25px rgba(99, 102, 241, 0.4);
+    }
+
+    .loading-shimmer {
+      background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.5s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .header-gradient {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+  </style>
+</head>
+
+<body class="min-h-screen gradient-bg">
+  <!-- Header Placeholder -->
+  <div id="header-placeholder" class="mb-8"></div>
+
+  <!-- Contenido principal -->
+  <main class="flex-1 flex items-center justify-center p-4">
+    <div class="w-full max-w-4xl">
+      <!-- Header Section -->
+      <div class="text-center mb-8 floating-animation">
+        <div class="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg mb-4">
+          <span class="material-icons text-4xl text-indigo-600">account_circle</span>
+        </div>
+        <h1 class="text-4xl font-bold header-gradient mb-2">Mi Perfil</h1>
+        <p class="text-white/80 text-lg">Gestiona tu información personal de forma segura</p>
+      </div>
+
+      <!-- Profile Card -->
+      <div class="glass-effect rounded-3xl p-8 shadow-2xl profile-card">
+        <!-- Hidden userId -->
+        <input type="hidden" id="userId" value="">
+
+        <!-- Loading State -->
+        <div id="loadingState" class="space-y-4">
+          <div class="loading-shimmer h-6 rounded-lg"></div>
+          <div class="loading-shimmer h-6 rounded-lg w-3/4"></div>
+          <div class="loading-shimmer h-6 rounded-lg w-1/2"></div>
+        </div>
+
+        <!-- Profile Info -->
+        <div id="profileContent" class="hidden">
+          <div class="grid md:grid-cols-2 gap-6 mb-8">
+            <!-- Personal Information -->
+            <div class="space-y-4">
+              <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <span class="material-icons mr-2 text-indigo-600">person</span>
+                Información Personal
+              </h3>
+              
+              <div class="profile-item p-4 rounded-xl">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Nombre Completo</label>
+                <p class="text-lg font-semibold text-gray-800" id="userFullName">--</p>
+              </div>
+
+              <div class="profile-item p-4 rounded-xl">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Correo Electrónico</label>
+                <p class="text-lg text-gray-700" id="userEmail">--</p>
+              </div>
+
+              <div class="profile-item p-4 rounded-xl">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">DNI</label>
+                <p class="text-lg text-gray-700" id="userDni">--</p>
+              </div>
+
+              <div class="profile-item p-4 rounded-xl">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Teléfono</label>
+                <p class="text-lg text-gray-700" id="userTelefono">--</p>
+              </div>
+
+              <div class="profile-item p-4 rounded-xl">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Fecha de Nacimiento</label>
+                <p class="text-lg text-gray-700" id="userFechaNacimiento">--</p>
+              </div>
+            </div>
+
+            <!-- Address Information -->
+            <div class="space-y-4">
+              <h3 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                <span class="material-icons mr-2 text-indigo-600">location_on</span>
+                Dirección
+              </h3>
+
+              <div class="profile-item p-4 rounded-xl">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Dirección</label>
+                <p class="text-lg text-gray-700" id="userDireccion">--</p>
+              </div>
+
+              <div class="profile-item p-4 rounded-xl">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Número</label>
+                <p class="text-lg text-gray-700" id="userNumero">--</p>
+              </div>
+
+              <div class="profile-item p-4 rounded-xl">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Provincia</label>
+                <p class="text-lg text-gray-700" id="userProvincia">--</p>
+              </div>
+
+              <div class="profile-item p-4 rounded-xl">
+                <label class="text-sm font-medium text-gray-500 uppercase tracking-wide">Municipio</label>
+                <p class="text-lg text-gray-700" id="userMunicipio">--</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex flex-col sm:flex-row gap-4 pt-6 border-t border-gray-200">
+            <button onclick="editarPerfil()" 
+                    class="btn-primary flex-1 px-6 py-3 text-white rounded-xl font-semibold pulse-shadow flex items-center justify-center">
+              <span class="material-icons mr-2">edit</span>
+              Editar Perfil
+            </button>
+            
+            <button onclick="cambiarContrasena()" 
+                    class="btn-secondary flex-1 px-6 py-3 text-white rounded-xl font-semibold pulse-shadow flex items-center justify-center">
+              <span class="material-icons mr-2">lock</span>
+              Cambiar Contraseña
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Footer Placeholder -->
+  <div id="footer-placeholder" class="mt-8"></div>
+
+  <!-- Scripts -->
+  <script src="./js/header.js"></script>
+  <script src="./js/loader.js"></script>
+
+  <script>
+    // Configuración de SweetAlert2
+    const Toast = Swal.mixin({
+      toast: true,
+      position: 'top-end',
+      showConfirmButton: false,
+      timer: 3000,
+      timerProgressBar: true,
+      didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+      }
+    });
+
+    // Función para mostrar loading
+    function showLoading() {
+      document.getElementById('loadingState').classList.remove('hidden');
+      document.getElementById('profileContent').classList.add('hidden');
+    }
+
+    // Función para ocultar loading
+    function hideLoading() {
+      document.getElementById('loadingState').classList.add('hidden');
+      document.getElementById('profileContent').classList.remove('hidden');
+    }
+
+    // Función para formatear fecha
+    function formatDate(dateString) {
+      if (!dateString) return 'No disponible';
+      const date = new Date(dateString);
+      return date.toLocaleDateString('es-AR', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    }
+
+    // Función para cargar los datos del usuario desde la API
+    async function loadUserProfile() {
+      const userId = localStorage.getItem('usuarioId');
+
+      if (!userId) {
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error de Autenticación',
+          text: 'No se ha encontrado el ID de usuario. Por favor, inicia sesión nuevamente.',
+          confirmButtonColor: '#667eea',
+          allowOutsideClick: false
+        });
+        window.location.href = 'login.html';
+        return;
+      }
+
+      showLoading();
+
+      try {
+        const response = await fetch(`http://localhost:8080/api/usuario/${userId}`);
+        
+        if (!response.ok) {
+          throw new Error(`Error ${response.status}: ${response.statusText}`);
+        }
+
+        const usuario = await response.json();
+        
+        // Validar que el objeto usuario tenga datos
+        if (!usuario || Object.keys(usuario).length === 0) {
+          throw new Error('No se encontraron datos del usuario');
+        }
+
+        // Poblar los campos con animación
+        setTimeout(() => {
+          document.getElementById('userId').value = usuario.id || '';
+          document.getElementById('userFullName').textContent = 
+            `${usuario.nombre || ''} ${usuario.apellido || ''}`.trim() || 'No disponible';
+          document.getElementById('userEmail').textContent = usuario.email || 'No disponible';
+          document.getElementById('userDni').textContent = usuario.dni || 'No disponible';
+          document.getElementById('userTelefono').textContent = usuario.telefono || 'No disponible';
+          document.getElementById('userFechaNacimiento').textContent = formatDate(usuario.fechaNacimiento);
+          document.getElementById('userDireccion').textContent = usuario.direccion || 'No disponible';
+          document.getElementById('userNumero').textContent = usuario.numeroD || 'No disponible';
+          document.getElementById('userProvincia').textContent = usuario.provincia || 'No disponible';
+          document.getElementById('userMunicipio').textContent = usuario.ciudad || 'No disponible';
+
+          hideLoading();
+          
+          Toast.fire({
+            icon: 'success',
+            title: 'Perfil cargado correctamente'
+          });
+        }, 500);
+
+      } catch (error) {
+        console.error('Error al cargar los datos:', error);
+        hideLoading();
+        
+        await Swal.fire({
+          icon: 'error',
+          title: 'Error al cargar el perfil',
+          text: 'No se pudieron cargar los datos del usuario. Por favor, intenta nuevamente.',
+          confirmButtonColor: '#667eea',
+          footer: '<small>Si el problema persiste, contacta al soporte técnico</small>'
+        });
+      }
+    }
+
+    // Redirigir a la página de edición de perfil
+    function editarPerfil() {
+      const userId = document.getElementById('userId').value;
+      
+      if (!userId) {
+        Toast.fire({
+          icon: 'error',
+          title: 'Error: ID de usuario no encontrado'
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: 'Redirigiendo...',
+        text: 'Te estamos llevando a la página de edición',
+        icon: 'info',
+        timer: 1500,
+        timerProgressBar: true,
+        showConfirmButton: false,
+        allowOutsideClick: false,
+        willClose: () => {
+          window.location.href = `modificarUsuario.html?id=${userId}`;
+        }
+      });
+    }
+
+    // Redirigir a la página de cambio de contraseña
+    function cambiarContrasena() {
+      const userId = document.getElementById('userId').value;
+      
+      if (!userId) {
+        Toast.fire({
+          icon: 'error',
+          title: 'Error: ID de usuario no encontrado'
+        });
+        return;
+      }
+
+      Swal.fire({
+        title: '¿Cambiar contraseña?',
+        text: 'Serás redirigido a la página de cambio de contraseña',
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#667eea',
+        cancelButtonColor: '#6b7280',
+        confirmButtonText: 'Sí, continuar',
+        cancelButtonText: 'Cancelar'
+      }).then((result) => {
+        if (result.isConfirmed) {
+          window.location.href = `cambiarContraseña.html?id=${userId}`;
+        }
+      });
+    }
+
+    // Función de manejo de errores global
+    window.addEventListener('unhandledrejection', function(event) {
+      console.error('Error no manejado:', event.reason);
+      Toast.fire({
+        icon: 'error',
+        title: 'Ha ocurrido un error inesperado'
+      });
+    });
+
+    // Inicializar al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+      // Pequeña animación de entrada
+      document.body.style.opacity = '0';
+      document.body.style.transition = 'opacity 0.5s ease';
+      
+      setTimeout(() => {
+        document.body.style.opacity = '1';
+        loadUserProfile();
+      }, 100);
+    });
+  </script>
+</body>
+</html>

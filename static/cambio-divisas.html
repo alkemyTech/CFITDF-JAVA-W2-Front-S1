@@ -1,0 +1,737 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AlkyWallet - Cambio de divisas seguro y rápido">
+    <title>Cambio de Divisas - AlkyWallet</title>
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <!-- Material Icons -->
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .account-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        
+        .account-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+        }
+        
+        .account-card.selected {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+            transform: translateY(-2px);
+        }
+        
+        .operation-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+            border: 2px solid #e5e7eb;
+        }
+        
+        .operation-option:hover {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.05);
+        }
+        
+        .operation-option.selected {
+            border-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+        
+        .step {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        .step.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        
+        .step.completed {
+            opacity: 1;
+        }
+        
+        .rate-card {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+        }
+        
+        .slide-in {
+            animation: slideIn 0.5s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+        }
+
+        .progress-bar {
+            height: 4px;
+            background: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #059669);
+            transition: width 0.5s ease;
+        }
+    </style>
+</head>
+<body class="gradient-bg min-h-screen">
+
+    <!-- Header -->
+    <header class="glass-effect border-b">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <button onclick="goBack()" class="text-gray-600 hover:text-gray-800 p-2 rounded-lg hover:bg-gray-100 transition-colors">
+                        <span class="material-icons">arrow_back</span>
+                    </button>
+                    <h1 class="text-2xl font-bold text-gray-800 flex items-center">
+                        <span class="material-icons mr-2 text-green-600">currency_exchange</span>
+                        Cambiar Moneda
+                    </h1>
+                </div>
+                <div class="flex items-center space-x-3">
+                    <div class="text-right">
+                        <p class="text-sm text-gray-600">Bienvenido</p>
+                        <p class="font-medium text-gray-800" id="user-name">Usuario</p>
+                    </div>
+                    <button onclick="logout()" class="text-red-600 hover:text-red-800 p-2 rounded-lg hover:bg-red-50 transition-colors">
+                        <span class="material-icons">logout</span>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Barra de Progreso -->
+    <div class="container mx-auto px-4 py-2">
+        <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width: 33%"></div>
+        </div>
+        <div class="flex justify-between mt-2 text-sm">
+            <span class="text-green-600 font-medium" id="step1-label">1. Cuenta origen</span>
+            <span class="text-gray-400" id="step2-label">2. Operación</span>
+            <span class="text-gray-400" id="step3-label">3. Importe</span>
+        </div>
+    </div>
+
+    <!-- Contenido Principal -->
+    <main class="container mx-auto p-4 lg:p-6">
+        
+        <!-- Cotización en tiempo real -->
+        <section class="mb-8 slide-in">
+            <div class="rate-card rounded-2xl p-6 text-center">
+                <h3 class="text-lg font-bold mb-4">💵 Cotización Actual del Dólar</h3>
+                <div class="grid grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-sm opacity-90">Nosotros Compramos</p>
+                        <p class="text-3xl font-bold">$1.170</p>
+                        <p class="text-xs opacity-75">Vos vendés tus dólares</p>
+                    </div>
+                    <div>
+                        <p class="text-sm opacity-90">Nosotros Vendemos</p>
+                        <p class="text-3xl font-bold">$1.190</p>
+                        <p class="text-xs opacity-75">Vos comprás dólares</p>
+                    </div>
+                </div>
+                <p class="text-xs opacity-75 mt-4">Última actualización: hace 2 minutos</p>
+            </div>
+        </section>
+
+        <!-- PASO 1: ORIGEN - Selección de cuenta -->
+        <section class="step active slide-in" id="step1">
+            <div class="glass-effect rounded-2xl p-6">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">ORIGEN</h2>
+                    <p class="text-gray-600">Selecciona la cuenta desde la cual realizarás la operación</p>
+                </div>
+
+                <div id="account-list" class="space-y-4">
+                    <!-- Se llenarán dinámicamente -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PASO 2: OPERACIÓN - Comprar o Vender -->
+        <section class="step mt-8" id="step2">
+            <div class="glass-effect rounded-2xl p-6">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">OPERACIÓN <span class="text-lg text-gray-500">(2 de 3)</span></h2>
+                    <p class="text-gray-600" id="operation-description">Elegí una opción</p>
+                </div>
+
+                <div class="space-y-4" id="operation-options">
+                    <!-- Se llenarán dinámicamente según la cuenta seleccionada -->
+                </div>
+            </div>
+        </section>
+
+        <!-- PASO 3: IMPORTE - Monto a cambiar -->
+        <section class="step mt-8" id="step3">
+            <div class="glass-effect rounded-2xl p-6">
+                <div class="mb-6">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2">Elegí moneda e importe</h2>
+                    <p class="text-gray-600" id="amount-description">Ingresa el monto que deseas cambiar</p>
+                </div>
+
+                <!-- Selector de moneda y monto -->
+                <div class="space-y-6">
+                    <!-- Moneda origen -->
+                    <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-lg">
+                        <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl" id="currency-flag-origin">
+                            🇺🇸
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-sm font-medium text-gray-700 mb-2" id="amount-label">Importe</label>
+                            <div class="relative">
+                                <input type="number" id="amount-input" placeholder="0.00" 
+                                       class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 text-lg font-medium"
+                                       oninput="calculateExchange()">
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resultado del cambio -->
+                    <div class="bg-green-50 rounded-lg p-4">
+                        <h4 class="font-bold text-green-800 mb-2">Importe en pesos</h4>
+                        <div class="flex items-center space-x-4">
+                            <div class="w-12 h-12 rounded-lg flex items-center justify-center text-2xl">
+                                🇦🇷
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-600 mb-1" id="exchange-rate-text">1 USD = 1.190,000 ARS</p>
+                                <p class="text-2xl font-bold text-green-600" id="result-amount">$ 0,00</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Resumen de comisiones -->
+                    <div class="bg-blue-50 rounded-lg p-4">
+                        <h5 class="font-bold text-blue-800 mb-3">Resumen de costos</h5>
+                        <div class="space-y-2 text-sm">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Tipo de cambio:</span>
+                                <span class="font-medium" id="applied-rate">$1.190</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Comisión (0.5%):</span>
+                                <span class="font-medium" id="commission-amount">$0,00</span>
+                            </div>
+                            <hr class="border-blue-200">
+                            <div class="flex justify-between text-base">
+                                <span class="font-bold text-blue-800">Total final:</span>
+                                <span class="font-bold text-green-600" id="final-amount">$0,00</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Botón continuar -->
+                <div class="mt-8">
+                    <button onclick="processExchange()" class="w-full btn-primary text-white py-4 px-6 rounded-lg font-medium text-lg" disabled id="continue-btn">
+                        <span class="material-icons mr-2">currency_exchange</span>
+                        Continuar
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        // Variables globales
+        let selectedAccount = null;
+        let selectedOperation = null;
+        let userAccounts = [];
+        let currentUser = null;
+        let currentStep = 1;
+        
+        const buyRate = 1170;
+        const sellRate = 1190;
+
+        // Función para obtener datos del usuario desde localStorage
+        function getUserFromStorage() {
+            const usuarioId = localStorage.getItem('usuarioId') || localStorage.getItem('cuentaIds');
+            const nombreUsuario = localStorage.getItem('nombreUsuario');
+            const apellidoUsuario = localStorage.getItem('apellidoUsuario');
+            
+            if (!usuarioId) {
+                Swal.fire({
+                    title: 'Sesión expirada',
+                    text: 'Necesitas iniciar sesión para acceder a esta página',
+                    icon: 'warning',
+                    confirmButtonText: 'Ir al login'
+                }).then(() => {
+                    window.location.href = 'index.html';
+                });
+                return null;
+            }
+
+            return {
+                id: usuarioId,
+                nombre: nombreUsuario || 'Usuario',
+                apellido: apellidoUsuario || ''
+            };
+        }
+
+        // Función para cargar cuentas del usuario
+        async function loadUserAccounts() {
+            if (!currentUser) return;
+
+            try {
+                const response = await fetch(`http://localhost:8080/api/cuentas/usuario/${currentUser.id}`);
+                if (!response.ok) throw new Error('Error al cargar cuentas');
+                
+                userAccounts = await response.json();
+                console.log('🏦 Cuentas cargadas:', userAccounts);
+                
+                displayAccounts();
+            } catch (error) {
+                console.error('Error:', error);
+                userAccounts = [
+                    { id: 1, tipo: 'ahorro', saldo: 387899.16, moneda: 'peso' },
+                    { id: 3, tipo: 'En Dólares', saldo: 10152.00, moneda: 'dolar_comun' }
+                ];
+                displayAccounts();
+            }
+        }
+
+        // Función para detectar si es cuenta en dólares
+        function isUSDAccount(account) {
+            return account.moneda === 'dolar_comun' || 
+                   account.moneda === 'DOLAR' || 
+                   account.tipo.toLowerCase().includes('dolar') ||
+                   account.tipo.toLowerCase().includes('usd') ||
+                   account.tipo.toLowerCase().includes('dólares');
+        }
+
+        // Función para mostrar las cuentas
+        function displayAccounts() {
+            const container = document.getElementById('account-list');
+            
+            console.log('🏦 Todas las cuentas del usuario:', userAccounts);
+            
+            container.innerHTML = userAccounts.map(account => {
+                const isUSD = isUSDAccount(account);
+                const symbol = isUSD ? 'US$' : '$';
+                const flag = isUSD ? '🇺🇸' : '🇦🇷';
+                const color = isUSD ? 'green' : 'blue';
+                const currencyName = isUSD ? 'Dólares Estadounidenses' : 'Pesos Argentinos';
+                
+                console.log(`💳 Cuenta ${account.id} - Tipo: ${account.tipo}, Moneda: ${account.moneda}, ¿Es USD?: ${isUSD}`);
+                
+                return `
+                    <div class="account-card glass-effect rounded-lg p-6" data-account-id="${account.id}" onclick="selectAccount(${account.id})">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center space-x-4">
+                                <div class="w-16 h-16 bg-${color}-100 rounded-xl flex items-center justify-center text-3xl">
+                                    ${flag}
+                                </div>
+                                <div>
+                                    <h3 class="text-xl font-bold text-gray-800 capitalize">${account.tipo}</h3>
+                                    <p class="text-sm text-gray-600">${account.id}</p>
+                                    <p class="text-sm text-gray-500">${currencyName}</p>
+                                </div>
+                            </div>
+                            <div class="text-right">
+                                <p class="text-2xl font-bold text-${color}-600">${symbol}${account.saldo.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                                <p class="text-sm text-gray-500">Saldo</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Función para seleccionar cuenta
+        function selectAccount(accountId) {
+            selectedAccount = userAccounts.find(acc => acc.id == accountId);
+            
+            console.log('🏦 Cuenta seleccionada:', selectedAccount);
+            console.log('💰 Moneda de la cuenta:', selectedAccount.moneda);
+            console.log('🔍 ¿Es cuenta USD?:', isUSDAccount(selectedAccount));
+            
+            document.querySelectorAll('.account-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+            document.querySelector(`[data-account-id="${accountId}"]`).classList.add('selected');
+            
+            showOperationOptions();
+            
+            setTimeout(() => {
+                goToStep(2);
+            }, 500);
+        }
+
+        // Función para mostrar opciones de operación
+        function showOperationOptions() {
+            const container = document.getElementById('operation-options');
+            const description = document.getElementById('operation-description');
+            
+            const isUSD = isUSDAccount(selectedAccount);
+            
+            console.log('🔍 Detectando tipo de cuenta:');
+            console.log('  - Moneda campo:', selectedAccount.moneda);
+            console.log('  - Tipo campo:', selectedAccount.tipo);
+            console.log('  - ¿Es cuenta USD?:', isUSD);
+            
+            if (isUSD) {
+                description.textContent = 'Desde tu cuenta en dólares, puedes vender tus USD por pesos';
+                container.innerHTML = `
+                    <div class="operation-option rounded-lg p-6 bg-white" onclick="selectOperation('sell')">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center" id="sell-radio">
+                                <div class="w-3 h-3 bg-green-600 rounded-full hidden" id="sell-dot"></div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-gray-800">Voy a vender</h4>
+                                <p class="text-sm text-gray-600">Vendés tus dólares y recibís pesos</p>
+                                <p class="text-sm text-green-600 font-medium">Cotización: $${buyRate} por USD</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            } else {
+                description.textContent = 'Desde tu cuenta en pesos, puedes comprar dólares';
+                container.innerHTML = `
+                    <div class="operation-option rounded-lg p-6 bg-white" onclick="selectOperation('buy')">
+                        <div class="flex items-center space-x-4">
+                            <div class="w-6 h-6 border-2 border-gray-300 rounded-full flex items-center justify-center" id="buy-radio">
+                                <div class="w-3 h-3 bg-green-600 rounded-full hidden" id="buy-dot"></div>
+                            </div>
+                            <div>
+                                <h4 class="text-lg font-bold text-gray-800">Voy a comprar</h4>
+                                <p class="text-sm text-gray-600">Comprás dólares con tus pesos</p>
+                                <p class="text-sm text-green-600 font-medium">Cotización: $${sellRate} por USD</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        // Función para seleccionar operación
+        function selectOperation(operation) {
+            selectedOperation = operation;
+            
+            document.querySelectorAll('.operation-option').forEach(opt => {
+                opt.classList.remove('selected');
+            });
+            event.currentTarget.classList.add('selected');
+            
+            const dot = document.getElementById(`${operation}-dot`);
+            if (dot) dot.classList.remove('hidden');
+            
+            setupAmountStep();
+            
+            setTimeout(() => {
+                goToStep(3);
+            }, 500);
+        }
+
+        // Función para configurar el paso de monto
+        function setupAmountStep() {
+            const currencyFlag = document.getElementById('currency-flag-origin');
+            const amountLabel = document.getElementById('amount-label');
+            const amountDescription = document.getElementById('amount-description');
+            const exchangeRateText = document.getElementById('exchange-rate-text');
+            
+            if (selectedOperation === 'sell') {
+                currencyFlag.textContent = '🇺🇸';
+                amountLabel.textContent = 'Importe en dólares';
+                amountDescription.textContent = 'Ingresa cuántos dólares quieres vender';
+                exchangeRateText.textContent = `1 USD = ${buyRate.toLocaleString('es-AR')} ARS`;
+            } else {
+                currencyFlag.textContent = '🇺🇸';
+                amountLabel.textContent = 'Importe en dólares';
+                amountDescription.textContent = 'Ingresa cuántos dólares quieres comprar';
+                exchangeRateText.textContent = `1 USD = ${sellRate.toLocaleString('es-AR')} ARS`;
+            }
+        }
+
+        // Función para calcular el cambio
+        function calculateExchange() {
+            const amountInput = document.getElementById('amount-input');
+            const resultAmount = document.getElementById('result-amount');
+            const appliedRate = document.getElementById('applied-rate');
+            const commissionAmount = document.getElementById('commission-amount');
+            const finalAmount = document.getElementById('final-amount');
+            const continueBtn = document.getElementById('continue-btn');
+            
+            const usdAmount = parseFloat(amountInput.value) || 0;
+            
+            if (usdAmount <= 0) {
+                resultAmount.textContent = '$ 0,00';
+                commissionAmount.textContent = '$0,00';
+                finalAmount.textContent = '$0,00';
+                continueBtn.disabled = true;
+                continueBtn.classList.add('opacity-50');
+                return;
+            }
+            
+            let pesosAmount, rate, commission, final;
+            
+            if (selectedOperation === 'sell') {
+                rate = buyRate;
+                pesosAmount = usdAmount * rate;
+                commission = pesosAmount * 0.005;
+                final = pesosAmount - commission;
+                appliedRate.textContent = `$${rate.toLocaleString('es-AR')}`;
+            } else {
+                rate = sellRate;
+                pesosAmount = usdAmount * rate;
+                commission = pesosAmount * 0.005;
+                final = pesosAmount + commission;
+                appliedRate.textContent = `$${rate.toLocaleString('es-AR')}`;
+            }
+            
+            resultAmount.textContent = `$ ${pesosAmount.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            commissionAmount.textContent = `$${commission.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            finalAmount.textContent = `$${final.toLocaleString('es-AR', {minimumFractionDigits: 2})}`;
+            
+            continueBtn.disabled = false;
+            continueBtn.classList.remove('opacity-50');
+        }
+
+        // Función para procesar el cambio
+        async function processExchange() {
+            const usdAmount = parseFloat(document.getElementById('amount-input').value);
+            const finalAmount = document.getElementById('final-amount').textContent;
+            
+            if (!usdAmount || usdAmount <= 0) {
+                Swal.fire('Error', 'Por favor ingresa un monto válido', 'error');
+                return;
+            }
+            
+            const operationText = selectedOperation === 'sell' ? 'vender' : 'comprar';
+            const accountText = selectedAccount.tipo.charAt(0).toUpperCase() + selectedAccount.tipo.slice(1);
+
+            let requestData;
+            
+            console.log('💱 Procesando cambio:');
+            console.log('  - Cuenta seleccionada:', selectedAccount);
+            console.log('  - Operación:', selectedOperation);
+            console.log('  - Monto USD:', usdAmount);
+            
+            if (selectedOperation === 'buy') {
+                // Comprando dólares: cuenta en pesos → dólares
+                const pesosAmount = usdAmount * sellRate;
+                requestData = {
+                    cuentaOrigenId: selectedAccount.id,
+                    monto: pesosAmount,
+                    tipoDestino: "DOLAR"  // Correcto según el enum
+                };
+            } else {
+                // Vendiendo dólares: cuenta en dólares → pesos
+                // El backend espera el tipo de cuenta destino, no "PESO"
+                requestData = {
+                    cuentaOrigenId: selectedAccount.id,
+                    monto: usdAmount,
+                    tipoDestino: "CAJA_AHORRO"  // Tipo de cuenta en pesos destino
+                };
+            }
+
+            console.log('📤 Datos a enviar a la API:', requestData);
+
+            const result = await Swal.fire({
+                title: '¿Confirmar operación?',
+                html: `
+                    <div class="text-left space-y-3">
+                        <div class="bg-blue-50 rounded-lg p-4">
+                            <h4 class="font-bold text-blue-800 mb-2">Resumen de la operación</h4>
+                            <p><strong>Cuenta:</strong> ${accountText} (#${selectedAccount.id})</p>
+                            <p><strong>Operación:</strong> ${operationText.charAt(0).toUpperCase() + operationText.slice(1)} dólares</p>
+                            <p><strong>Monto:</strong> US$${usdAmount.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                            <p><strong>Total en pesos:</strong> ${finalAmount}</p>
+                        </div>
+                        <div class="text-center">
+                            <p class="text-sm text-gray-600">Esta operación no se puede deshacer</p>
+                        </div>
+                    </div>
+                `,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonText: 'Confirmar Operación',
+                cancelButtonText: 'Cancelar',
+                confirmButtonColor: '#10b981'
+            });
+
+            if (result.isConfirmed) {
+                Swal.fire({
+                    title: 'Procesando...',
+                    html: 'Realizando cambio de divisas en el servidor',
+                    allowOutsideClick: false,
+                    showConfirmButton: false,
+                    willOpen: () => Swal.showLoading()
+                });
+
+                try {
+                    const response = await fetch('http://localhost:8080/api/conversiones', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(requestData)
+                    });
+
+                    console.log('📡 Response status:', response.status);
+                    
+                    if (!response.ok) {
+                        const errorData = await response.json().catch(() => ({}));
+                        throw new Error(errorData.message || `Error del servidor: ${response.status}`);
+                    }
+
+                    const responseData = await response.json();
+                    console.log('✅ Respuesta de la API:', responseData);
+
+                    Swal.fire({
+                        title: '¡Operación exitosa!',
+                        html: `
+                            <div class="text-center space-y-3">
+                                <div class="text-6xl">🎉</div>
+                                <p class="text-lg">El ${operationText} de divisas se procesó correctamente</p>
+                                <div class="bg-green-50 rounded-lg p-4 text-left">
+                                    <h4 class="font-bold text-green-800 mb-2">Detalles de la operación</h4>
+                                    <p><strong>Monto:</strong> US$${usdAmount.toLocaleString('es-AR', {minimumFractionDigits: 2})}</p>
+                                    <p><strong>Tipo:</strong> ${operationText.charAt(0).toUpperCase() + operationText.slice(1)} dólares</p>
+                                    <p><strong>Estado:</strong> <span class="text-green-600">Completado</span></p>
+                                </div>
+                            </div>
+                        `,
+                        icon: 'success',
+                        confirmButtonText: 'Volver a mis cuentas',
+                        confirmButtonColor: '#10b981'
+                    }).then(() => {
+                        goBack();
+                    });
+
+                } catch (error) {
+                    console.error('❌ Error al procesar conversión:', error);
+                    
+                    Swal.fire({
+                        title: 'Error en la operación',
+                        html: `
+                            <div class="text-left space-y-3">
+                                <p class="text-red-600 mb-3">No se pudo completar la conversión de divisas.</p>
+                                <div class="bg-red-50 rounded-lg p-3 text-sm">
+                                    <strong>Detalles del error:</strong><br>
+                                    ${error.message}
+                                </div>
+                                <div class="text-center">
+                                    <p class="text-sm text-gray-600">Por favor, intenta nuevamente o contacta a soporte.</p>
+                                </div>
+                            </div>
+                        `,
+                        icon: 'error',
+                        confirmButtonText: 'Entendido',
+                        confirmButtonColor: '#dc2626'
+                    });
+                }
+            }
+        }
+
+        // Función para navegar entre pasos
+        function goToStep(stepNumber) {
+            currentStep = stepNumber;
+            const progressFill = document.getElementById('progress-fill');
+            const progressWidth = (stepNumber / 3) * 100;
+            progressFill.style.width = `${progressWidth}%`;
+            
+            for (let i = 1; i <= 3; i++) {
+                const label = document.getElementById(`step${i}-label`);
+                if (i < stepNumber) {
+                    label.className = 'text-green-600 font-medium';
+                } else if (i === stepNumber) {
+                    label.className = 'text-green-600 font-medium';
+                } else {
+                    label.className = 'text-gray-400';
+                }
+            }
+            
+            for (let i = 1; i <= 3; i++) {
+                const step = document.getElementById(`step${i}`);
+                if (i < stepNumber) {
+                    step.className = 'step completed';
+                } else if (i === stepNumber) {
+                    step.className = 'step active slide-in';
+                } else {
+                    step.className = 'step';
+                }
+            }
+        }
+
+        // Funciones de navegación
+        function goBack() {
+            window.location.href = 'cuentas.html';
+        }
+
+        function logout() {
+            Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: 'Se cerrará tu sesión actual',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    localStorage.clear();
+                    window.location.href = 'index.html';
+                }
+            });
+        }
+
+        // Inicialización
+        document.addEventListener('DOMContentLoaded', function() {
+            currentUser = getUserFromStorage();
+            
+            if (currentUser) {
+                document.getElementById('user-name').textContent = 
+                    currentUser.apellido ? `${currentUser.nombre} ${currentUser.apellido}` : currentUser.nombre;
+                
+                loadUserAccounts();
+            }
+        });
+    </script>
+</body>
+</html>

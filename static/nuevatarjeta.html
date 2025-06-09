@@ -1,0 +1,223 @@
+ <!DOCTYPE html>
+<html lang="es">
+<!-- head.html -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AlkyWallet - tu billetera digital con carga, pagos, transferencias y control total." />
+  <meta name="keywords" content="billetera virtual, pagos, transferencias, finanzas personales, AlkyWallet" />
+  <meta name="author" content="Pingüinos Tecnologícos" />
+  <meta property="og:title" content="AlkyWallet" />
+  <meta property="og:description" content="Gestioná tu dinero de forma fácil y segura con AlkyWallet." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="http://localhost:8080" />
+  <meta property="og:image" content="/assets/logo.png" />
+    <title>Solicitar Tarjeta - AlkyWallet</title>
+ 
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Material Icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      .gradient-bg {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      }
+
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .nav-item {
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .nav-item:after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        left: 50%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+      }
+
+      .nav-item:hover:after {
+        width: 100%;
+      }
+
+      .action-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .action-btn:before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: all 0.5s ease;
+      }
+
+      .action-btn:hover:before {
+        width: 300px;
+        height: 300px;
+      }
+    </style>
+  </head>
+  <body class="gradient-bg text-gray-800 min-h-screen">
+   <!-- Header Placeholder -->
+  <div id="header-placeholder" class="mb-4"></div>
+
+    <!-- Contenido principal -->
+    <main class="container mx-auto px-4 py-8 max-w-xl">
+      <div class="glass-effect rounded-3xl p-6 shadow-lg">
+        <h2 class="text-2xl font-semibold text-gray-800 mb-4">
+          Formulario de Solicitud
+        </h2>
+
+        <form id="formTarjeta" class="space-y-4">
+
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 mb-1"
+              for="tipo"
+              >Tipo de tarjeta*</label
+            >
+            <select
+              id="tipo"
+              name="tipo"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+            >
+              <option value="" disabled selected>Selecciona una opción</option>
+              <option value="CREDITO">Crédito</option>
+              <option value="DEBITO">Débito</option>
+              <option value="PREPAGA">Prepaga</option>
+            </select>
+          </div>
+        
+                        <div>
+                <label for="cuentaAsociada" class="block text-sm font-medium text-gray-700 mb-1">
+                  Cuenta Asociada*
+                </label>
+                <select
+                  id="cuentaAsociada"
+                  name="cuentaAsociada"
+                  class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500"
+                  required
+                >
+                  <option value="" disabled selected>Seleccione una cuenta</option>
+                </select>
+              </div>
+            <div class="checkbox-container">
+                  <input
+                    type="checkbox"
+                    id="esVirtual"
+                    name="esVirtual"
+                    class="checkbox-input"
+                    onclick="clickEsVirtual()"
+                  />
+                  <label for="esVirtual" class="form-label cursor-pointer">
+                    ¿Tarjeta virtual?
+                  </label>
+                </div>
+          <div>
+            <label
+              class="block text-sm font-medium text-gray-700 mb-1"
+              for="direccion"
+              id="direccionLabel"
+              >Dirección de envío</label
+            >
+            <input
+              type="text"
+              id="direccionInput"
+              name="direccion"
+              required
+              class="w-full px-4 py-2 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+          </div>
+          <div class="pt-4">
+            <button
+              type="submit"
+              class="action-btn w-full bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold py-3 rounded-xl hover:shadow-xl"
+              onclick="solicitarTarjeta(event)"
+            >
+              Solicitar Tarjeta
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Información adicional -->
+        <div class="glass-effect rounded-2xl p-6 mb-8 mt-5 slide-in">
+          <h3 class="text-xl font-bold text-gray-800 flex items-center mb-4">
+            <span class="material-icons mr-2 text-blue-600">info</span>
+            Información importante
+          </h3>
+          
+          <div class="space-y-4 text-gray-700">
+            <div class="flex items-start">
+              <span class="material-icons text-blue-500 mr-2">schedule</span>
+              <p>
+                <strong class="text-gray-800">Tiempo de entrega:</strong> Las tarjetas físicas 
+                pueden demorar entre 5 y 10 días hábiles en llegar a tu domicilio.
+              </p>
+            </div>
+            
+            <div class="flex items-start">
+              <span class="material-icons text-blue-500 mr-2">credit_card</span>
+              <p>
+                <strong class="text-gray-800">Tarjetas virtuales:</strong> Si solicitas una tarjeta 
+                virtual, recibirás los datos inmediatamente después de completar este formulario.
+              </p>
+            </div>
+                        <div class="flex items-start">
+              <span class="material-icons text-blue-500 mr-2">security</span>
+              <p>
+                <strong class="text-gray-800">Seguridad:</strong> Todas nuestras tarjetas cuentan 
+                con tecnología de seguridad avanzada y protección contra fraudes.
+              </p>
+            </div>
+    </main>
+<!-- Footer Placeholder -->
+  <div id="footer-placeholder" class="mt-8"></div>
+
+
+    <!-- Script para funcionalidad básica -->
+     <script src="js/header.js"></script>
+     <script src="js/loader.js"></script>
+    <script src="./js/nuevatarjeta.js"></script>
+  </body>
+</html>
+
+<!-- implementar que si es virtual, no mostrar campo de direccion de envio -->

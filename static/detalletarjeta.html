@@ -1,0 +1,368 @@
+ <!DOCTYPE html>
+<html lang="es">
+<!-- head.html -->
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="AlkyWallet - tu billetera digital con carga, pagos, transferencias y control total." />
+  <meta name="keywords" content="billetera virtual, pagos, transferencias, finanzas personales, AlkyWallet" />
+  <meta name="author" content="Pingüinos Tecnologícos" />
+  <meta property="og:title" content="AlkyWallet" />
+  <meta property="og:description" content="Gestioná tu dinero de forma fácil y segura con AlkyWallet." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="http://localhost:8080" />
+  <meta property="og:image" content="/assets/logo.png" />
+    <title>Detalle Tarjeta - AlkyWallet</title>
+    
+
+    <!-- Tailwind CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Material Icons -->
+    <link
+      href="https://fonts.googleapis.com/icon?family=Material+Icons"
+      rel="stylesheet"
+    />
+
+    <!-- Google Fonts -->
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+
+    <style>
+      body {
+        font-family: "Inter", sans-serif;
+      }
+
+      .gradient-bg {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      }
+
+      .glass-effect {
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+      }
+
+      .slide-in {
+        animation: slideIn 0.5s ease-out;
+      }
+
+      @keyframes slideIn {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .nav-item {
+        position: relative;
+        transition: all 0.3s ease;
+      }
+
+      .nav-item:after {
+        content: "";
+        position: absolute;
+        width: 0;
+        height: 2px;
+        bottom: -4px;
+        left: 50%;
+        background: linear-gradient(90deg, #667eea, #764ba2);
+        transition: all 0.3s ease;
+        transform: translateX(-50%);
+      }
+
+      .nav-item:hover:after {
+        width: 100%;
+      }
+
+      .action-btn {
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+      }
+
+      .action-btn:before {
+        content: "";
+        position: absolute;
+        top: 50%;
+        left: 50%;
+        width: 0;
+        height: 0;
+        background: rgba(255, 255, 255, 0.2);
+        border-radius: 50%;
+        transform: translate(-50%, -50%);
+        transition: all 0.5s ease;
+      }
+
+      .action-btn:hover:before {
+        width: 300px;
+        height: 300px;
+      }
+
+      #eliminarTarjeta {
+        cursor: pointer;
+      }
+
+      #mostrarTarjeta {
+        cursor: pointer;
+      }
+    </style>
+  </head>
+  <body class="gradient-bg text-gray-800 min-h-screen">
+    <!-- Header -->
+    <header
+      class="glass-effect shadow-lg border-b border-white/20 sticky top-0 z-50"
+    >
+      <div class="container mx-auto px-4 py-4">
+        <div class="flex justify-between items-center">
+          <div class="flex items-center space-x-3">
+            <div
+              class="bg-gradient-to-r from-blue-500 to-purple-600 p-2 rounded-xl"
+            >
+              <span class="material-icons text-white text-2xl"
+                >credit_card</span
+              >
+            </div>
+            <div>
+              <h1
+                class="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent"
+              >
+                AlkyWallet
+              </h1>
+              <p class="text-xs text-gray-600">Detalle de la tarjeta</p>
+            </div>
+          </div>
+          <a
+            href="tarjetas.html"
+            class="nav-item px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100"
+          >
+            <span class="material-icons text-sm mr-1">arrow_back</span>
+            Volver
+          </a>
+        </div>
+      </div>
+    </header>
+
+    <!-- Contenido principal -->
+    <main class="container mx-auto p-4 lg:p-6">
+      <!-- Sección de saldo -->
+      <section class="mb-8 slide-in">
+        <div
+          class="bg-gradient-to-br from-blue-600 to-indigo-700 text-white rounded-[1.75rem] p-4 shadow-xl w-[360px] h-[200px] mx-auto"
+        >
+          <div class="flex flex-col justify-between h-full">
+            <!-- Parte superior -->
+            <div class="mb-4">
+              <div class="flex justify-between items-center mb-1">
+                <p class="text-sm opacity-90" id="tipo-tarjeta">
+                  TARJETA *****
+                </p>
+                <span class="material-icons text-white text-base"
+                  >account_balance_wallet</span
+                >
+              </div>
+              <div class="text-2xl font-semibold tracking-wide">
+                <span id="numero-tarjeta">**** **** **** ****</span>
+              </div>
+              <div class="text-2xl font-semibold tracking-wide">
+                <span id="nombre-usuario"></span>
+              </div>
+            </div>
+
+            <!-- Parte inferior -->
+            <div class="flex justify-between text-sm opacity-90 px-1">
+              <!-- Vencimiento -->
+              <div class="flex flex-col items-start">
+                <span class="text-xs">VENCIMIENTO</span>
+                <span class="text-base font-medium" id="vencimiento-tarjeta"
+                  >**/****</span
+                >
+              </div>
+              <!-- Saldo -->
+              <div class="flex flex-col items-end">
+                <span class="text-xs">SALDO</span>
+                <span class="text-base font-medium" id="saldo-tarjeta"
+                  >$***</span
+                >
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Botones para tarjeta -->
+      <section class="mb-8 slide-in">
+        <div
+          class="flex flex-row items-center justify-center gap-2 text-center"
+        >
+          <div
+            class="glass-effect rounded-2xl p-6 hover-scale max-w-[200px] mx-auto"
+            onmousedown="mostrarDatos()"
+            onmouseup="ocultarDatos()"
+            style="cursor: pointer"
+          >
+            <div class="flex items-center justify-between">
+              <div
+                class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center"
+              >
+                <span class="material-icons text-green-600">visibility</span>
+              </div>
+              <div>
+                <p
+                  class="text-lg font-semibold text-gray-700 ml-3"
+                  id="mostrarTarjeta"
+                >
+                  Mostrar
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="glass-effect rounded-2xl p-6 hover-scale max-w-[200px] mx-auto"
+            style="cursor: pointer"
+          >
+            <div
+              class="flex items-center justify-between"
+              onclick="mostrarToggleCongelarTarjeta()"
+              id="congelarTarjeta"
+            >
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center"
+              >
+                <span
+                  class="material-icons text-blue-600"
+                  id="estadoTarjetaIcono"
+                ></span>
+              </div>
+              <div>
+                <p
+                  class="text-lg font-semibold text-gray-700 ml-3"
+                  id="estadoTarjetaTexto"
+                ></p>
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="glass-effect rounded-2xl p-6 hover-scale max-w-[200px] mx-auto"
+          >
+            <div
+              class="flex items-center justify-between"
+              onclick="eliminarTarjeta()"
+              id="eliminarTarjeta"
+            >
+              <div
+                class="w-12 h-12 bg-red-100 rounded-xl flex items-center justify-center"
+              >
+                <span class="material-icons text-red-600">delete</span>
+              </div>
+              <div>
+                <p class="text-lg font-semibold text-gray-700 ml-3">Eliminar</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Detalle de la cuenta -->
+      <section class="slide-in">
+        <div class="glass-effect rounded-2xl p-6">
+          <div class="flex items-center justify-between mb-6">
+            <h3 class="text-xl font-bold text-gray-800 flex items-center">
+              <span class="material-icons mr-2 text-blue-600">info</span>
+              Detalle de la cuenta
+            </h3>
+          </div>
+
+          <div id="ultimosMovimientos" class="space-y-3">
+            <!-- Movimientos de ejemplo (se reemplazarán con JS) -->
+            <div
+              class="movement-item flex items-center justify-between p-4 rounded-xl hover:bg-gray-50 transition-all duration-300"
+            >
+              <div class="flex items-center space-x-4">
+                <div
+                  class="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center"
+                >
+                  <span class="material-icons text-green-600">wallet</span>
+                </div>
+                <div>
+                  <p
+                    class="font-medium text-gray-800"
+                    id="detalle-cuenta-numero"
+                  ></p>
+                  <p class="text-sm text-gray-500" id="detalle-cuenta-tipo">
+                    Hoy, 14:30
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Estado vacío -->
+          <div id="emptyState" class="hidden text-center py-12">
+            <div
+              class="w-20 h-20 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4"
+            >
+              <span class="material-icons text-gray-400 text-3xl"
+                >receipt_long</span
+              >
+            </div>
+            <h4 class="text-lg font-medium text-gray-600 mb-2">
+              No hay movimientos recientes
+            </h4>
+            <p class="text-gray-500 mb-6">
+              Tus transacciones aparecerán aquí cuando realices alguna operación
+            </p>
+            <a
+              href="carga.html"
+              class="inline-flex items-center px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 transition-colors"
+            >
+              <span class="material-icons mr-2">add</span>
+              Cargar saldo
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="mt-12 bg-white/50 backdrop-blur-sm border-t border-gray-200">
+      <div class="container mx-auto px-4 py-6">
+        <div
+          class="flex flex-col md:flex-row items-center justify-between gap-4"
+        >
+          <div class="flex items-center space-x-4 text-sm text-gray-600">
+            <div class="flex items-center">
+              <span class="material-icons text-sm mr-1 text-green-500"
+                >security</span
+              >
+              <span>Protegido por SSL</span>
+            </div>
+            <div class="flex items-center">
+              <span class="material-icons text-sm mr-1 text-blue-500"
+                >support_agent</span
+              >
+              <span>Soporte 24/7</span>
+            </div>
+          </div>
+          <p class="text-sm text-gray-500">
+            © 2024 AlkyWallet. Todos los derechos reservados.
+          </p>
+        </div>
+      </div>
+    </footer>
+
+    <!-- Script dashboard.js -->
+    <script src="./js/detalletarjeta.js"></script>
+  </body>
+</html>
