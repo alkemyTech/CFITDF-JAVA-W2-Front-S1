@@ -1,16 +1,31 @@
+document.addEventListener('DOMContentLoaded', function(){
+    cargarCuentas();
+    obtenerSaldoActual();
+});
+
 let selectedAmount = 0;
 let selectedMethod = '';
 
-// Actualizar hora actual
-function updateCurrentTime() {
-    const now = new Date();
-    const timeString = now.toLocaleTimeString('es-AR', {
-        hour: '2-digit',
-        minute: '2-digit'
-    });
-    const dateString = now.toLocaleDateString('es-AR');
-    document.getElementById('currentTime').textContent = `${timeString}`;
-    document.getElementById('lastAccess').textContent = `${dateString} - ${timeString} hs`;
+const cargarCuentas = async () => {
+    let userId = localStorage.getItem('usuarioId');
+    try{
+        const response = await fetch(`http://localhost:8080/api/cuentas/usuario/${userId}`);
+        if(!response.ok){
+            throw new Error("No fue posible obtener las cuentas del usuario ID "+userId);
+        }else{
+            const cuentas = await response.json();
+            console.log(cuentas);
+            const selectCuentas = document.getElementById("cuentaAsociada");
+            cuentas.forEach(cuenta => {
+                const optionSelect = document.createElement("option");
+                optionSelect.textContent = `${cuenta.tipo} - N° ${cuenta.id}`
+                optionSelect.setAttribute("value", cuenta.id);
+                selectCuentas.appendChild(optionSelect);
+            });
+        }
+    }catch(error){
+        console.error("Error al obtener las cuentas. ", error);
+    }
 }
 
 // Nueva función para actualizar la hora
@@ -185,5 +200,105 @@ document.addEventListener('DOMContentLoaded', function() {
         document.getElementById('userFullName').textContent = `${nombreUsuario} ${apellidoUsuario}`; // Mostrar el nombre completo en la página
     } else {
         document.getElementById('userFullName').textContent = 'Usuario'; // Nombre por defecto si no hay
+    }
+});
+
+const obtenerSaldoActual = async () => {
+    const cuentas = JSON.parse(localStorage.getItem('cuentaIds'));
+    const cuentaId = cuentas[0]; // Obtener el primer ID de cuenta
+
+    try {
+        const response = await fetch(`http://localhost:8080/api/cuentas/${cuentaId}`); // Usar el endpoint para obtener la cuenta
+        if (!response.ok) {
+            throw new Error("No fue posible obtener la cuenta ID " + cuentaId);
+        } else {
+            const cuenta = await response.json(); // Obtener la cuenta completa
+            document.getElementById('saldoActual').textContent = cuenta.saldo.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+    } catch (error) {
+        console.error("Error al obtener el saldo. ", error);
+        document.getElementById('saldoActual').textContent = 'Error al cargar saldo';
+    }
+};
+
+
+// Manejar envío del formulario
+document.getElementById('cargaForm').addEventListener('submit', async function(e) {
+    e.preventDefault();
+
+    // Validar monto y método de pago
+    if (selectedAmount < 100) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Monto inválido',
+            text: 'El monto mínimo es $100'
+        });
+        return;
+    }
+
+    if (!selectedMethod) {
+        Swal.fire({
+            icon: 'warning',
+            title: 'Método de pago',
+            text: 'Por favor selecciona un método de pago'
+        });
+        return;
+    }
+
+    const btnConfirmar = document.getElementById('btnConfirmar');
+    const originalText = btnConfirmar.innerHTML;
+
+    // Estado de carga
+    btnConfirmar.innerHTML = '<span class="material-icons animate-spin mr-2">sync</span><span>Procesando...</span>';
+    btnConfirmar.disabled = true;
+
+    // Obtener el ID de la cuenta seleccionada
+    const cuentaId = document.getElementById('cuentaAsociada').value;
+
+    // Crear el objeto de datos que se enviará
+    const data = {
+        cuentaId: cuentaId,
+        monto: selectedAmount
+    };
+
+    try {
+        const response = await fetch('http://localhost:8080/api/cuentas/cargar-saldo', {
+            method: 'PATCH', // Usar PATCH según tu controlador
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(data)
+        });
+
+        if (!response.ok) {
+            throw new Error('Error en la solicitud: ' + response.status);
+        }
+
+        const result = await response.json();
+        
+        // Mostrar mensaje de éxito
+        Swal.fire({
+            icon: 'success',
+            title: '¡Carga exitosa! 🎉',
+            html: `
+                <p>Se han cargado <strong>$${selectedAmount.toLocaleString('es-AR')}</strong> a tu billetera</p>
+                <p class="text-sm text-gray-600 mt-2">Método: ${document.getElementById('metodoResumen').textContent}</p>
+            `,
+            confirmButtonText: 'Ver mi saldo',
+            confirmButtonColor: '#059669'
+        }).then(() => {
+            window.location.href = 'cuentas.html'; // Redirigir a la página de saldo
+        });
+
+    } catch (error) {
+        console.error("Error durante la carga de saldo: ", error);
+        Swal.fire({
+            icon: 'error',
+            title: 'Error',
+            text: error.message
+        });
+    } finally {
+        btnConfirmar.innerHTML = originalText;
+        btnConfirmar.disabled = false;
     }
 });
