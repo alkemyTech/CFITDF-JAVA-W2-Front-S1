@@ -1,5 +1,38 @@
 const API_URL = 'http://localhost:8080/api/usuario'; // Cambia esta URL según tu configuración
 
+function logout() {
+            Swal.fire({
+                title: '¿Cerrar sesión?',
+                text: 'Se cerrará tu sesión actual',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#3085d6',
+                confirmButtonText: 'Sí, cerrar sesión',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    // Limpiar el localStorage
+                    localStorage.removeItem('usuarioId');
+                    localStorage.removeItem('nombreUsuario');
+                    localStorage.removeItem('apellidoUsuario');
+                    localStorage.removeItem('RolUsuario');
+                    localStorage.removeItem('cuentaIds');
+
+                    // Mostrar mensaje de cerrando sesión
+                    Swal.fire({
+                        title: 'Cerrando sesión...',
+                        timer: 1500,
+                        timerProgressBar: true,
+                        showConfirmButton: false,
+                        willClose: () => {
+                            // Redirigir a la página de inicio de sesión
+                            window.location.href = 'index.html'; // Cambia esto por la URL de tu página de inicio de sesión
+                        }
+                    });
+                }
+            });
+        }
 // Función para cargar usuarios al cargar la página
 async function cargarUsuarios() {
     // Mostrar el estado de carga
@@ -47,9 +80,6 @@ function mostrarUsuarios(usuarios) {
                 <button onclick="verUsuario(${usuario.id})" class="text-blue-600 hover:text-blue-800">Ver</button>
                 <button onclick="modificarUsuario(${usuario.id})" class="text-green-600 hover:text-green-800 ml-2">Modificar</button>
                 <button onclick="eliminarUsuario(${usuario.id})" class="text-red-600 hover:text-red-800 ml-2">Eliminar</button>
-                ${usuario.activo 
-                    ? `<button onclick="desactivarUsuario(${usuario.id})" class="text-red-600 hover:text-red-800 ml-2">Desactivar</button>` 
-                    : `<button onclick="activarUsuario(${usuario.id})" class="text-green-600 hover:text-green-800 ml-2">Activar</button>`}
             </td>
         `;
         tablaUsuarios.appendChild(row);
